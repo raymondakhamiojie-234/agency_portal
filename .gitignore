@@ -1,0 +1,13 @@
+node_modules
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+dist
+build
+.DS_Store
+*.log
+.turbo
+apps/web/build/
+apps/web/public/build/
