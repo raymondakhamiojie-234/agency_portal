@@ -14,39 +14,12 @@ if (globalThis.fetch) {
   globalThis.fetch = updatedFetch;
 }
 
-/** Recursively find all route.js files */
-async function findRouteFiles(dir: string): Promise<string[]> {
-  const files = await readdir(dir);
-  let routes: string[] = [];
-
-  for (const file of files) {
-    try {
-      const filePath = join(dir, file);
-      const statResult = await stat(filePath);
-
-      if (statResult.isDirectory()) {
-        routes = routes.concat(await findRouteFiles(filePath));
-      } else if (file === 'route.js') {
-        // Handle root route.js specially
-        if (filePath === join(__dirname, 'route.js')) {
-          routes.unshift(filePath); // Add to beginning of array
-        } else {
-          routes.push(filePath);
-        }
-      }
-    } catch (error) {
-      console.error(`Error reading file ${file}:`, error);
-    }
-  }
-
-  return routes;
-}
-
 /** Helper function to transform file path to Hono route path */
 function getHonoPath(routeFile: string): { name: string; pattern: string }[] {
-  const relativePath = routeFile.replace(__dirname, '');
+  // routeFile is something like '../src/app/api/auth/route.js'
+  const relativePath = routeFile.replace('../src/app/api', '');
   const parts = relativePath.split(/[\\/]/).filter(Boolean);
-  const routeParts = parts.slice(0, -1); // Remove 'route.js'
+  const routeParts = parts.slice(0, -1); // Remove 'route.js' or 'route.ts'
   if (routeParts.length === 0) {
     return [{ name: 'root', pattern: '' }];
   }
@@ -65,25 +38,14 @@ function getHonoPath(routeFile: string): { name: string; pattern: string }[] {
 
 /** Import and register all routes */
 async function registerRoutes() {
-  const routeFiles = (
-    await findRouteFiles(__dirname).catch((error) => {
-      console.error('Error finding route files:', error);
-      return [];
-    })
-  )
-    .slice()
-    .sort((a, b) => {
-      return b.length - a.length;
-    });
-
-  // Clear existing routes
   api.routes = [];
+
+  const modules = import.meta.glob('../src/app/api/**/route.{js,ts}', { eager: true });
+  const routeFiles = Object.keys(modules).sort((a, b) => b.length - a.length);
 
   for (const routeFile of routeFiles) {
     try {
-      const fileUrl = pathToFileURL(routeFile).href;
-      const route = await import(/* @vite-ignore */ `${fileUrl}?update=${Date.now()}`);
-
+      const route = modules[routeFile] as any;
       const methods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'];
       for (const method of methods) {
         try {
@@ -92,12 +54,6 @@ async function registerRoutes() {
             const honoPath = `/${parts.map(({ pattern }) => pattern).join('/')}`;
             const handler: Handler = async (c) => {
               const params = c.req.param();
-              if (import.meta.env.DEV) {
-                const updatedRoute = await import(
-                  /* @vite-ignore */ `${fileUrl}?update=${Date.now()}`
-                );
-                return await updatedRoute[method](c.req.raw, { params });
-              }
               return await route[method](c.req.raw, { params });
             };
             const methodLowercase = method.toLowerCase();
@@ -135,23 +91,5 @@ async function registerRoutes() {
 
 // Initial route registration
 await registerRoutes();
-
-// Hot reload routes in development.
-// Keep the glob lazy. Vite rewrites `{ eager: true }` into static imports at
-// the top of this module, so a single CJS `require()` in any customer route.js
-// throws during evaluation, kills the Hono server, and leaves web=unhealthy
-// (blank preview, grayed-out Expo QR). registerRoutes already try/catches
-// per-file dynamic imports; a lazy glob keeps files in the HMR graph without
-// evaluating them at boot.
-if (import.meta.env.DEV) {
-  import.meta.glob('../src/app/api/**/route.js');
-  if (import.meta.hot) {
-    import.meta.hot.accept((_newSelf) => {
-      registerRoutes().catch((err) => {
-        console.error('Error reloading routes:', err);
-      });
-    });
-  }
-}
 
 export { api, API_BASENAME };
