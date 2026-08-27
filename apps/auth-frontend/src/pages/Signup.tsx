@@ -17,7 +17,7 @@ export default function Signup() {
     setError('');
 
     try {
-      const response = await axios.post(
+      await axios.post(
         '/api/auth/callback/credentials-signup',
         { name, email, password },
         { withCredentials: true }

@@ -18,7 +18,7 @@ export default function Login() {
     try {
       // Cross-origin request to the backend Auth.js endpoint
       // Using /api/auth/callback/credentials-signin since that's the custom id in backend
-      const response = await axios.post(
+      await axios.post(
         '/api/auth/callback/credentials-signin',
         { email, password },
         { withCredentials: true }
