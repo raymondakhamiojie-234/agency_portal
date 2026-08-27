@@ -16,8 +16,8 @@ import { serializeError } from 'serialize-error';
 import ws from 'ws';
 import NeonAdapter from './adapter';
 import { getHTMLForErrorPage } from './get-html-for-error-page';
-import { isAuthAction } from './is-auth-action';
 import { API_BASENAME, api } from './route-builder';
+import { falcusApi } from './falcus-api';
 neonConfig.webSocketConstructor = ws;
 
 const als = new AsyncLocalStorage<{ requestId: string }>();
@@ -69,6 +69,7 @@ if (process.env.CORS_ORIGINS) {
     '/*',
     cors({
       origin: process.env.CORS_ORIGINS.split(',').map((origin) => origin.trim()),
+      credentials: true,
     })
   );
 }
@@ -98,30 +99,45 @@ if (process.env.AUTH_SECRET) {
         strategy: 'jwt',
       },
       callbacks: {
+        jwt({ token, user }) {
+          if (user) {
+            token.role = (user as any).role || 'CREATOR';
+          }
+          return token;
+        },
         session({ session, token }) {
           if (token.sub) {
             session.user.id = token.sub;
+            (session.user as any).role = token.role;
           }
           return session;
         },
       },
       cookies: {
         csrfToken: {
+          name: 'authjs.csrf-token',
           options: {
-            secure: true,
+            httpOnly: true,
             sameSite: 'none',
+            path: '/',
+            secure: true,
           },
         },
         sessionToken: {
+          name: 'authjs.session-token',
           options: {
-            secure: true,
+            httpOnly: true,
             sameSite: 'none',
+            path: '/',
+            secure: true,
           },
         },
         callbackUrl: {
+          name: 'authjs.callback-url',
           options: {
-            secure: true,
             sameSite: 'none',
+            path: '/',
+            secure: true,
           },
         },
       },
@@ -291,6 +307,10 @@ app.use('/api/auth/*', async (c, next) => {
   }
   return next();
 });
+
+// Mount custom Falcus endpoints under /api
+app.route('/api', falcusApi);
+
 app.route(API_BASENAME, api);
 
 export { app };
