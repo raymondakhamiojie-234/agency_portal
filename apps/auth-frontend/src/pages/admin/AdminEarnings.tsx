@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Papa from 'papaparse';
-import { UploadCloud, FileText, CheckCircle, AlertCircle, Plus, Edit2, Trash2 } from 'lucide-react';
+import { UploadCloud, CheckCircle, AlertCircle, Plus, Edit2, Trash2 } from 'lucide-react';
 
 export default function AdminEarnings() {
   const [earnings, setEarnings] = useState<any[]>([]);

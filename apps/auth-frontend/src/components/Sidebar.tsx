@@ -1,4 +1,3 @@
-import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { 
   LayoutDashboard, 
@@ -8,7 +7,6 @@ import {
   Landmark, 
   FileText, 
   Bell, 
-  User, 
   Settings,
   Users,
   DollarSign

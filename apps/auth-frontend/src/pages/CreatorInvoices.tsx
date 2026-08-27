@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { FileText, Download, CheckCircle, Clock } from 'lucide-react';
+import { Download, CheckCircle, Clock } from 'lucide-react';
 
 export default function CreatorInvoices() {
   const [invoices, setInvoices] = useState<any[]>([]);

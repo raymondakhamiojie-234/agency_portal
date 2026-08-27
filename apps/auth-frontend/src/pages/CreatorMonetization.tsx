@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Youtube, Instagram, Facebook, Smartphone, AlertCircle, CheckCircle } from 'lucide-react';
+import { Video, Camera, Users, Smartphone, AlertCircle, CheckCircle } from 'lucide-react';
 
 export default function CreatorMonetization() {
   const [monetization, setMonetization] = useState<any[]>([]);
@@ -23,9 +23,9 @@ export default function CreatorMonetization() {
 
   const getIcon = (platform: string) => {
     switch(platform) {
-      case 'YOUTUBE': return <Youtube className="h-6 w-6 text-red-500" />;
-      case 'INSTAGRAM': return <Instagram className="h-6 w-6 text-pink-500" />;
-      case 'FACEBOOK': return <Facebook className="h-6 w-6 text-blue-500" />;
+      case 'YOUTUBE': return <Video className="h-6 w-6 text-red-500" />;
+      case 'INSTAGRAM': return <Camera className="h-6 w-6 text-pink-500" />;
+      case 'FACEBOOK': return <Users className="h-6 w-6 text-blue-500" />;
       case 'TIKTOK': return <Smartphone className="h-6 w-6 text-cyan-400" />;
       default: return <Smartphone className="h-6 w-6 text-gray-400" />;
     }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Users, Wallet, CreditCard, Landmark, TrendingUp } from 'lucide-react';
 import StatCard from '../../components/StatCard';

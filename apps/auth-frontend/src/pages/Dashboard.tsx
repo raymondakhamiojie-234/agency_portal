@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import axios from 'axios';
 import { Wallet, TrendingUp, CreditCard, Landmark, CheckCircle, Clock } from 'lucide-react';
@@ -6,7 +6,7 @@ import StatCard from '../components/StatCard';
 import AdminDashboard from './admin/AdminDashboard';
 
 export default function Dashboard() {
-  const { user, role } = useOutletContext<{ user: any, role: string }>();
+  const { role } = useOutletContext<{ role: string }>();
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -58,7 +58,7 @@ export default function Dashboard() {
           title="Total Earnings" 
           value={formatCurrency(stats.totalEarnings)} 
           icon={<TrendingUp className="h-6 w-6 text-primary" />} 
-          trend="+12%"
+          trend={{ value: 12, isPositive: true }}
         />
         <StatCard 
           title="Unpaid Balance" 

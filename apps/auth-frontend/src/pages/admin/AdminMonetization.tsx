@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Search, Plus } from 'lucide-react';
 
 export default function AdminMonetization() {
   const [monetization, setMonetization] = useState<any[]>([]);

@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { CreditCard, CheckCircle, Clock, AlertCircle, Info } from 'lucide-react';
+import { AlertCircle, Info } from 'lucide-react';
 
 export default function CreatorLoan() {
   const [eligibility, setEligibility] = useState({

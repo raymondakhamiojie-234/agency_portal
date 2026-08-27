@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { CreditCard, CheckCircle, Clock, XCircle } from 'lucide-react';
 
 export default function AdminLoans() {
   const [loans, setLoans] = useState<any[]>([]);
