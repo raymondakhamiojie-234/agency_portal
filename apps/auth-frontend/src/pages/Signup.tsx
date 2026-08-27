@@ -19,27 +19,11 @@ export default function Signup() {
     try {
       const response = await axios.post(
         '/api/auth/callback/credentials-signup',
-        new URLSearchParams({
-          name,
-          email,
-          password,
-          redirect: 'false',
-        }),
-        {
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          withCredentials: true,
-        }
+        { name, email, password },
+        { withCredentials: true }
       );
 
-      const responseUrl = response.request?.responseURL || '';
-      
-      if (responseUrl.includes('error=')) {
-        setError('Signup failed. Email might already be in use.');
-      } else {
-        navigate('/dashboard');
-      }
+      navigate('/dashboard');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Could not create account. Please try again.');
     } finally {

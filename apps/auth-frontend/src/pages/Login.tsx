@@ -20,28 +20,11 @@ export default function Login() {
       // Using /api/auth/callback/credentials-signin since that's the custom id in backend
       const response = await axios.post(
         '/api/auth/callback/credentials-signin',
-        new URLSearchParams({
-          email,
-          password,
-          redirect: 'false',
-        }),
-        {
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          withCredentials: true,
-        }
+        { email, password },
+        { withCredentials: true }
       );
 
-      // Axios follows the redirect. If login fails, Auth.js redirects to /api/auth/signin?error=...
-      // If login succeeds, it redirects to the callbackUrl (default is /)
-      const responseUrl = response.request?.responseURL || '';
-      
-      if (responseUrl.includes('error=')) {
-        setError('Invalid email or password');
-      } else {
-        navigate('/dashboard');
-      }
+      navigate('/dashboard');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Login failed. Please try again.');
     } finally {
