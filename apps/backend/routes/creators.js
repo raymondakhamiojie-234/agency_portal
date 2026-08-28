@@ -202,7 +202,7 @@ router.post('/contracts/master', async (req, res) => {
         creator_id, revenue_share_percentage, duration_years, 
         signed_at, created_at, signed_by_name, signature_name, 
         signature_ip, ip_address, status
-      ) VALUES ($1, $2, $3, NOW(), NOW(), $4, $5, $6, $7, 'ACTIVE') RETURNING *`,
+      ) VALUES ($1, $2, $3, NOW(), NOW(), $4, $5, $6, $7, 'Signed') RETURNING *`,
       [userId, 70, 1, req.user.name, signature_name, ip, ip]
     );
     
@@ -222,7 +222,7 @@ router.post('/contracts/platform', async (req, res) => {
       `INSERT INTO platform_contracts (
         creator_id, platform, account_name, account_url, 
         followers_count, signed_at, created_at, status
-      ) VALUES ($1, $2, $3, $4, $5, NOW(), NOW(), 'PENDING') RETURNING *`,
+      ) VALUES ($1, $2, $3, $4, $5, NOW(), NOW(), 'Pending') RETURNING *`,
       [userId, platform, account_name, account_url, followers_count || 0]
     );
     

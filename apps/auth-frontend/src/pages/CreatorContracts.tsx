@@ -236,13 +236,13 @@ export default function CreatorContracts() {
                   <div className="flex items-center space-x-6">
                     <div className="text-right">
                       <p className="text-xs text-gray-500 mb-1">Status</p>
-                      {p.status === 'ACTIVE' || p.status === 'APPROVED' ? (
+                      {p.status === 'Signed' || p.status === 'Approved' ? (
                         <span className="text-green-400 text-sm font-medium flex items-center">
                           <CheckCircle className="h-4 w-4 mr-1" /> {p.status}
                         </span>
-                      ) : p.status === 'PENDING' ? (
+                      ) : p.status === 'Pending' ? (
                         <span className="text-yellow-400 text-sm font-medium flex items-center">
-                          <Clock className="h-4 w-4 mr-1" /> PENDING
+                          <Clock className="h-4 w-4 mr-1" /> Pending
                         </span>
                       ) : (
                         <span className="text-red-400 text-sm font-medium flex items-center">
@@ -285,7 +285,6 @@ export default function CreatorContracts() {
                 >
                   <option>YouTube</option>
                   <option>Facebook</option>
-                  <option>Snapchat</option>
                   <option>TikTok</option>
                   <option>Instagram</option>
                 </select>
