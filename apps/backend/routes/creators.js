@@ -72,7 +72,8 @@ router.get('/earnings', async (req, res) => {
       currency: 'USD',
       period: row.earning_date ? new Date(row.earning_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'Unknown',
       status: 'VERIFIED',
-      payment_status: row.payout_status ? row.payout_status.toUpperCase() : 'UNPAID'
+      payment_status: row.payout_status ? row.payout_status.toUpperCase() : 'UNPAID',
+      withholding_tax: row.withholding_tax || 0
     })));
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
