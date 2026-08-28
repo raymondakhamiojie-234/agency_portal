@@ -8,6 +8,7 @@ import AdminLoans from './pages/admin/AdminLoans';
 import AdminMonetization from './pages/admin/AdminMonetization';
 import CreatorPayments from './pages/CreatorPayments';
 import CreatorLoan from './pages/CreatorLoan';
+import CreatorContracts from './pages/CreatorContracts';
 import CreatorInvoices from './pages/CreatorInvoices';
 import CreatorMonetization from './pages/CreatorMonetization';
 import Notifications from './pages/Notifications';
@@ -27,6 +28,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/payments" element={<CreatorPayments />} />
           <Route path="/loan" element={<CreatorLoan />} />
+          <Route path="/contracts" element={<CreatorContracts />} />
           <Route path="/invoices" element={<CreatorInvoices />} />
           <Route path="/monetization" element={<CreatorMonetization />} />
           <Route path="/notifications" element={<Notifications />} />

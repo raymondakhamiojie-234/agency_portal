@@ -169,4 +169,68 @@ router.get('/monetization', async (req, res) => {
   }
 });
 
+// Contracts
+router.get('/contracts', async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const masterRes = await pool.query(
+      "SELECT * FROM contracts WHERE creator_id = $1 ORDER BY created_at DESC", 
+      [userId]
+    );
+    const platformRes = await pool.query(
+      "SELECT * FROM platform_contracts WHERE creator_id = $1 ORDER BY created_at DESC", 
+      [userId]
+    );
+    
+    res.json({
+      master: masterRes.rows,
+      platform: platformRes.rows
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.post('/contracts/master', async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { signature_name } = req.body;
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    
+    const { rows } = await pool.query(
+      `INSERT INTO contracts (
+        creator_id, revenue_share_percentage, duration_years, 
+        signed_at, created_at, signed_by_name, signature_name, 
+        signature_ip, ip_address, status
+      ) VALUES ($1, $2, $3, NOW(), NOW(), $4, $5, $6, $7, 'ACTIVE') RETURNING *`,
+      [userId, 70, 1, req.user.name, signature_name, ip, ip]
+    );
+    
+    res.json({ success: true, contract: rows[0] });
+  } catch (err) {
+    console.error('Sign Master Contract Error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.post('/contracts/platform', async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { platform, account_name, account_url, followers_count } = req.body;
+    
+    const { rows } = await pool.query(
+      `INSERT INTO platform_contracts (
+        creator_id, platform, account_name, account_url, 
+        followers_count, signed_at, created_at, status
+      ) VALUES ($1, $2, $3, $4, $5, NOW(), NOW(), 'PENDING') RETURNING *`,
+      [userId, platform, account_name, account_url, followers_count || 0]
+    );
+    
+    res.json({ success: true, contract: rows[0] });
+  } catch (err) {
+    console.error('Sign Platform Contract Error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 export default router;
