@@ -65,8 +65,8 @@ export default function AdminEarnings() {
     });
   };
 
-  const formatCurrency = (amount: number, curr: string = 'NGN') => {
-    return new Intl.NumberFormat('en-NG', { style: 'currency', currency: curr }).format(amount);
+  const formatCurrency = (amount: number, curr: string = 'USD') => {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: curr }).format(amount);
   };
 
   const handleDelete = async (id: string) => {

@@ -21,8 +21,8 @@ export default function CreatorPayments() {
     }
   };
 
-  const formatCurrency = (amount: number, curr: string = 'NGN') => {
-    return new Intl.NumberFormat('en-NG', { style: 'currency', currency: curr }).format(amount);
+  const formatCurrency = (amount: number, curr: string = 'USD') => {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: curr }).format(amount);
   };
 
   const formatDate = (dateStr: string) => {
@@ -65,7 +65,7 @@ export default function CreatorPayments() {
                 payments.map((p) => (
                   <tr key={p.id} className="hover:bg-white/[0.02] transition-colors">
                     <td className="px-6 py-4 text-gray-300">{formatDate(p.payment_date)}</td>
-                    <td className="px-6 py-4 font-medium text-white">{formatCurrency(p.amount, 'NGN')}</td>
+                    <td className="px-6 py-4 font-medium text-white">{formatCurrency(p.amount, 'USD')}</td>
                     <td className="px-6 py-4">
                       <div className="flex items-center text-gray-300">
                         <CreditCard className="h-4 w-4 mr-2 text-gray-500" />

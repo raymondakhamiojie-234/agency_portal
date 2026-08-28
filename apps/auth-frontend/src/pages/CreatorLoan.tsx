@@ -35,8 +35,8 @@ export default function CreatorLoan() {
     }
   };
 
-  const formatCurrency = (amount: number, curr: string = 'NGN') => {
-    return new Intl.NumberFormat('en-NG', { style: 'currency', currency: curr }).format(amount);
+  const formatCurrency = (amount: number, curr: string = 'USD') => {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: curr }).format(amount);
   };
 
   const formatDate = (dateStr: string) => {
@@ -87,9 +87,9 @@ export default function CreatorLoan() {
             
             <form onSubmit={handleApply} className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Requested Amount (NGN)</label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Requested Amount (USD)</label>
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">₦</span>
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">$</span>
                   <input
                     type="number"
                     value={amount}
