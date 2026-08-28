@@ -271,6 +271,19 @@ router.put('/profile', async (req, res) => {
       page_urls, follower_count
     } = req.body;
     
+    // Safe parsing
+    const parsedDate = date_of_birth ? new Date(date_of_birth) : null;
+    const safeDate = parsedDate && !isNaN(parsedDate.getTime()) ? parsedDate : null;
+    
+    let safePageUrls = null;
+    if (Array.isArray(page_urls)) {
+      safePageUrls = page_urls;
+    } else if (typeof page_urls === 'string' && page_urls.trim() !== '') {
+      safePageUrls = [page_urls];
+    }
+
+    const safeFollowerCount = parseInt(follower_count, 10) || 0;
+
     // Note: Bank details are explicitly NOT updated here because changing them requires admin approval
     
     // Upsert creator profile
@@ -294,9 +307,9 @@ router.put('/profile', async (req, res) => {
         updated_at = NOW()
       RETURNING *`,
       [
-        userId, full_name, brand_name, phone_number, primary_platform,
-        country, page_name, date_of_birth ? new Date(date_of_birth) : null, home_address,
-        page_urls ? `{${page_urls}}` : null, follower_count || 0
+        userId, full_name || 'Unknown', brand_name, phone_number, primary_platform,
+        country, page_name, safeDate, home_address,
+        safePageUrls, safeFollowerCount
       ]
     );
     
