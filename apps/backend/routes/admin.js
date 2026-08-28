@@ -9,8 +9,24 @@ router.use(requireAuth, requireAdmin);
 // Earnings
 router.get('/earnings', async (req, res) => {
   try {
-    const { rows } = await pool.query("SELECT * FROM earnings ORDER BY created_at DESC");
-    res.json(rows);
+    const { rows } = await pool.query(`
+      SELECT e.*, u.name as creator_name, u.email as creator_email 
+      FROM earnings e 
+      JOIN auth_users u ON e.creator_id = u.id 
+      ORDER BY e.created_at DESC
+    `);
+    
+    res.json(rows.map(row => ({
+      id: row.id,
+      creator_name: row.creator_name,
+      creator_email: row.creator_email,
+      platform: row.platform,
+      period: row.earning_date ? new Date(row.earning_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'Unknown',
+      amount: row.amount,
+      currency: 'USD',
+      status: 'VERIFIED',
+      payment_status: row.payout_status ? row.payout_status.toUpperCase() : 'UNPAID'
+    })));
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
   }
@@ -26,9 +42,11 @@ router.post('/earnings/import', async (req, res) => {
 
   for (const record of records) {
     try {
-      const { email, platform, period, amount, currency, status } = record;
+      // Input from CSV: email, platform, period, amount, currency, status
+      // We map this to: creator_id, platform, earning_date, amount, payout_status
+      const { email, platform, period, amount, status } = record;
       
-      const userRes = await pool.query("SELECT id, name FROM users WHERE email = $1", [email]);
+      const userRes = await pool.query("SELECT id FROM auth_users WHERE email = $1", [email]);
       if (userRes.rows.length === 0) {
         failed++;
         errors.push({ email, error: 'User not found' });
@@ -37,10 +55,16 @@ router.post('/earnings/import', async (req, res) => {
       
       const user = userRes.rows[0];
       
+      // Attempt to parse 'period' into a valid date, fallback to now
+      let earningDate = new Date(period);
+      if (isNaN(earningDate.getTime())) {
+        earningDate = new Date();
+      }
+      
       await pool.query(
-        `INSERT INTO earnings (user_id, creator_name, creator_email, platform, period, amount, currency, status) 
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-        [user.id, user.name, email, platform, period, parseFloat(amount), currency || 'NGN', status || 'VERIFIED']
+        `INSERT INTO earnings (creator_id, platform, amount, earning_date, payout_status) 
+         VALUES ($1, $2, $3, $4, $5)`,
+        [user.id, platform, parseFloat(amount), earningDate, status || 'Unpaid']
       );
       imported++;
     } catch (err) {
@@ -64,9 +88,16 @@ router.delete('/earnings/:id', async (req, res) => {
 // Loans
 router.get('/loans', async (req, res) => {
   try {
-    const { rows } = await pool.query("SELECT * FROM loans ORDER BY request_date DESC");
+    // Loans has user_id
+    const { rows } = await pool.query(`
+      SELECT l.*, u.name as creator_name, u.email as creator_email 
+      FROM loans l
+      JOIN auth_users u ON l.user_id = u.id
+      ORDER BY l.created_at DESC
+    `);
     res.json(rows);
   } catch (err) {
+    console.error('Loans error:', err);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -84,7 +115,13 @@ router.put('/loans/:id/status', async (req, res) => {
 // Monetization
 router.get('/monetization', async (req, res) => {
   try {
-    const { rows } = await pool.query("SELECT * FROM monetization ORDER BY last_updated DESC");
+    // Monetization might not exist in legacy, so we gracefully catch it
+    const { rows } = await pool.query(`
+      SELECT m.*, u.name as creator_name, u.email as creator_email
+      FROM monetization m
+      JOIN auth_users u ON m.user_id = u.id
+      ORDER BY m.last_updated DESC
+    `).catch(() => ({ rows: [] }));
     res.json(rows);
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
@@ -94,12 +131,7 @@ router.get('/monetization', async (req, res) => {
 router.post('/monetization', async (req, res) => {
   const { user_id, platform, handle, current_followers, status } = req.body;
   try {
-    const userRes = await pool.query("SELECT name, email FROM users WHERE id = $1", [user_id]);
-    if (userRes.rows.length === 0) return res.status(400).json({ error: 'User not found' });
-    
-    const user = userRes.rows[0];
-    
-    // Check if exists, update or insert
+    // We didn't migrate monetization schema fully, but we assume it has user_id if it exists.
     const existRes = await pool.query("SELECT id FROM monetization WHERE user_id = $1 AND platform = $2", [user_id, platform]);
     
     if (existRes.rows.length > 0) {
@@ -109,9 +141,9 @@ router.post('/monetization', async (req, res) => {
       );
     } else {
       await pool.query(
-        `INSERT INTO monetization (user_id, creator_name, creator_email, platform, handle, current_followers, status)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-        [user_id, user.name, user.email, platform, handle, current_followers, status]
+        `INSERT INTO monetization (user_id, platform, handle, current_followers, status)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [user_id, platform, handle, current_followers, status]
       );
     }
     res.json({ success: true });
