@@ -33,8 +33,8 @@ function App() {
           <Route path="/monetization" element={<CreatorMonetization />} />
           <Route path="/notifications" element={<Notifications />} />
           
-          {/* Stubs */}
-          <Route path="/earnings" element={<Navigate to="/dashboard" replace />} />
+          {/* Redirect old earnings path to new finances page */}
+          <Route path="/earnings" element={<Navigate to="/finances" replace />} />
           <Route path="/profile" element={<div className="text-white">Profile Page (Coming Soon)</div>} />
           <Route path="/settings" element={<div className="text-white">Settings Page (Coming Soon)</div>} />
             
