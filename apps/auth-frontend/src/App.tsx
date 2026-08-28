@@ -8,6 +8,7 @@ import AdminLoans from './pages/admin/AdminLoans';
 import AdminMonetization from './pages/admin/AdminMonetization';
 import CreatorFinances from './pages/CreatorFinances';
 import CreatorProfile from './pages/CreatorProfile';
+import CreatorSupport from './pages/CreatorSupport';
 import CreatorLoan from './pages/CreatorLoan';
 import CreatorContracts from './pages/CreatorContracts';
 import CreatorInvoices from './pages/CreatorInvoices';
@@ -27,6 +28,7 @@ function App() {
         <Route element={<Layout />}>
           {/* Shared / Creator Routes */}
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/support" element={<CreatorSupport />} />
           <Route path="/profile" element={<CreatorProfile />} />
           <Route path="/finances" element={<CreatorFinances />} />
           <Route path="/loan" element={<CreatorLoan />} />

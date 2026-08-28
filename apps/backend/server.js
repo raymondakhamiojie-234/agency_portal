@@ -6,6 +6,7 @@ import pg from 'pg';
 
 import authRoutes from './routes/auth.js';
 import creatorRoutes from './routes/creators.js';
+import managerRoutes from './routes/manager.js';
 import adminRoutes from './routes/admin.js';
 
 const { Pool } = pg;
@@ -39,6 +40,7 @@ app.use(cookieParser());
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/manager', managerRoutes);
 app.use('/api', creatorRoutes);
 app.use('/api/admin', adminRoutes);
 
