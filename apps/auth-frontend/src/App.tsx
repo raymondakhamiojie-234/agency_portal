@@ -7,6 +7,7 @@ import AdminPayments from './pages/admin/AdminPayments';
 import AdminLoans from './pages/admin/AdminLoans';
 import AdminMonetization from './pages/admin/AdminMonetization';
 import CreatorFinances from './pages/CreatorFinances';
+import CreatorProfile from './pages/CreatorProfile';
 import CreatorLoan from './pages/CreatorLoan';
 import CreatorContracts from './pages/CreatorContracts';
 import CreatorInvoices from './pages/CreatorInvoices';
@@ -26,6 +27,7 @@ function App() {
         <Route element={<Layout />}>
           {/* Shared / Creator Routes */}
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/profile" element={<CreatorProfile />} />
           <Route path="/finances" element={<CreatorFinances />} />
           <Route path="/loan" element={<CreatorLoan />} />
           <Route path="/contracts" element={<CreatorContracts />} />
@@ -35,7 +37,6 @@ function App() {
           
           {/* Redirect old earnings path to new finances page */}
           <Route path="/earnings" element={<Navigate to="/finances" replace />} />
-          <Route path="/profile" element={<div className="text-white">Profile Page (Coming Soon)</div>} />
           <Route path="/settings" element={<div className="text-white">Settings Page (Coming Soon)</div>} />
             
           {/* Admin Routes */}

@@ -234,4 +234,77 @@ router.post('/contracts/platform', async (req, res) => {
   }
 });
 
+// Get Creator Profile
+router.get('/profile', async (req, res) => {
+  try {
+    const userId = req.user.id;
+    
+    // Get user basic info
+    const userRes = await pool.query('SELECT name, email FROM auth_users WHERE id = $1', [userId]);
+    const user = userRes.rows[0];
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Get creator profile info
+    const profileRes = await pool.query('SELECT * FROM creator_profiles WHERE user_id = $1', [userId]);
+    const profile = profileRes.rows[0] || {};
+    
+    res.json({
+      ...user,
+      ...profile
+    });
+  } catch (err) {
+    console.error('Get Profile Error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Update Creator Profile
+router.put('/profile', async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { 
+      full_name, brand_name, phone_number, primary_platform, 
+      country, page_name, date_of_birth, home_address,
+      page_urls, follower_count
+    } = req.body;
+    
+    // Note: Bank details are explicitly NOT updated here because changing them requires admin approval
+    
+    // Upsert creator profile
+    const { rows } = await pool.query(
+      `INSERT INTO creator_profiles (
+        user_id, full_name, brand_name, phone_number, primary_platform,
+        country, page_name, date_of_birth, home_address,
+        page_urls, follower_count, updated_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW())
+      ON CONFLICT (user_id) DO UPDATE SET
+        full_name = EXCLUDED.full_name,
+        brand_name = EXCLUDED.brand_name,
+        phone_number = EXCLUDED.phone_number,
+        primary_platform = EXCLUDED.primary_platform,
+        country = EXCLUDED.country,
+        page_name = EXCLUDED.page_name,
+        date_of_birth = EXCLUDED.date_of_birth,
+        home_address = EXCLUDED.home_address,
+        page_urls = EXCLUDED.page_urls,
+        follower_count = EXCLUDED.follower_count,
+        updated_at = NOW()
+      RETURNING *`,
+      [
+        userId, full_name, brand_name, phone_number, primary_platform,
+        country, page_name, date_of_birth ? new Date(date_of_birth) : null, home_address,
+        page_urls ? `{${page_urls}}` : null, follower_count || 0
+      ]
+    );
+    
+    res.json({ success: true, profile: rows[0] });
+  } catch (err) {
+    console.error('Update Profile Error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 export default router;

@@ -19,6 +19,7 @@ interface SidebarProps {
 export default function Sidebar({ role = 'CREATOR' }: SidebarProps) {
   const creatorLinks = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+    { name: 'Profile', path: '/profile', icon: Users },
     { name: 'Finances', path: '/finances', icon: DollarSign },
     { name: 'Loan Request', path: '/loan', icon: CreditCard },
     { name: 'Contracts', path: '/contracts', icon: FileText },
