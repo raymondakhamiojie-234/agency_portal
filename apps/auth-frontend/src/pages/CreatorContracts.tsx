@@ -27,7 +27,7 @@ export default function CreatorContracts() {
 
   const fetchContracts = async () => {
     try {
-      const res = await axios.get('/api/creator/contracts', { withCredentials: true });
+      const res = await axios.get('/api/contracts', { withCredentials: true });
       setMasterContracts(res.data.master);
       setPlatformContracts(res.data.platform);
     } catch (err) {
@@ -41,7 +41,7 @@ export default function CreatorContracts() {
     e.preventDefault();
     setSigningMaster(true);
     try {
-      await axios.post('/api/creator/contracts/master', { signature_name: signatureName }, { withCredentials: true });
+      await axios.post('/api/contracts/master', { signature_name: signatureName }, { withCredentials: true });
       fetchContracts();
     } catch (err) {
       console.error('Failed to sign master contract', err);
@@ -54,7 +54,7 @@ export default function CreatorContracts() {
     e.preventDefault();
     setSigningPlatform(true);
     try {
-      await axios.post('/api/creator/contracts/platform', {
+      await axios.post('/api/contracts/platform', {
         platform,
         account_name: accountName,
         account_url: accountUrl,
