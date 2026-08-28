@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { DollarSign, CheckCircle, Clock, Download, TrendingUp, AlertCircle } from 'lucide-react';
+import { CheckCircle, Clock, Download, TrendingUp, AlertCircle } from 'lucide-react';
 
 export default function CreatorFinances() {
   const [earnings, setEarnings] = useState<any[]>([]);
