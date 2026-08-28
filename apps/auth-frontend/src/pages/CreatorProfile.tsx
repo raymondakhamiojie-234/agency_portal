@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { User, Mail, Phone, MapPin, Briefcase, Link as LinkIcon, Users, Landmark, AlertCircle, Save } from 'lucide-react';
+import { User, CheckCircle, Phone, MapPin, Briefcase, Link as LinkIcon, Users, Landmark, AlertCircle, Save } from 'lucide-react';
 
 export default function CreatorProfile() {
   const [profile, setProfile] = useState<any>({});
