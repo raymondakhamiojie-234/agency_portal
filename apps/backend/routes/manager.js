@@ -1,8 +1,12 @@
 import express from 'express';
 import { pool } from '../server.js';
 import { requireAuth } from './auth.js';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const router = express.Router();
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || 'dummy_key_to_prevent_crash');
+const aiModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
 router.use(requireAuth);
 
@@ -106,13 +110,51 @@ router.get('/tickets/:id/messages', async (req, res) => {
 router.post('/tickets/:id/messages', async (req, res) => {
   try {
     const { message } = req.body;
-    const { rows } = await pool.query(
+    
+    // Save user message
+    const { rows: userMsgRows } = await pool.query(
       `INSERT INTO support_ticket_messages (ticket_id, sender_id, sender_role, message) 
        VALUES ($1, $2, $3, $4) RETURNING *`,
       [req.params.id, req.user.id, 'CREATOR', message]
     );
+    
     await pool.query("UPDATE support_tickets SET updated_at = NOW() WHERE id = $1", [req.params.id]);
-    res.json(rows[0]);
+
+    let responseMessages = [userMsgRows[0]];
+
+    // Call AI in the background if API key is set
+    if (process.env.GEMINI_API_KEY) {
+      try {
+        const ticketRes = await pool.query("SELECT subject, category, platform, priority, message as initial_message FROM support_tickets WHERE id = $1", [req.params.id]);
+        const ticket = ticketRes.rows[0];
+        
+        const historyRes = await pool.query("SELECT sender_role, message FROM support_ticket_messages WHERE ticket_id = $1 ORDER BY created_at ASC", [req.params.id]);
+        
+        let prompt = `You are a helpful AI Support Bot for Falcus Media Agency.\n`;
+        prompt += `A creator has an issue with their ${ticket.platform} account. Category: ${ticket.category}. Priority: ${ticket.priority}.\n`;
+        prompt += `Initial Issue: "${ticket.subject} - ${ticket.initial_message}"\n\n`;
+        prompt += `Conversation history:\n`;
+        historyRes.rows.forEach(r => {
+          prompt += `${r.sender_role}: ${r.message}\n`;
+        });
+        prompt += `\nAs an AI_ASSISTANT, provide a helpful, polite, and actionable troubleshooting response to the creator. Keep it concise.`;
+
+        const result = await aiModel.generateContent(prompt);
+        const aiResponseText = result.response.text();
+
+        const { rows: aiMsgRows } = await pool.query(
+          `INSERT INTO support_ticket_messages (ticket_id, sender_id, sender_role, message) 
+           VALUES ($1, 0, 'AI_ASSISTANT', $2) RETURNING *`,
+          [req.params.id, aiResponseText]
+        );
+        
+        responseMessages.push(aiMsgRows[0]);
+      } catch (aiErr) {
+        console.error("AI Ticket Response Error:", aiErr);
+      }
+    }
+
+    res.json(responseMessages);
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
   }
@@ -181,12 +223,45 @@ router.get('/chat', async (req, res) => {
 router.post('/chat', async (req, res) => {
   try {
     const { message } = req.body;
-    const { rows } = await pool.query(
+    
+    // Insert user message
+    const { rows: userRows } = await pool.query(
       `INSERT INTO manager_chat_messages (creator_id, sender_id, sender_role, message) 
        VALUES ($1, $2, $3, $4) RETURNING *`,
       [req.user.id, req.user.id, 'CREATOR', message]
     );
-    res.json(rows[0]);
+
+    let responseMessages = [userRows[0]];
+
+    // Call AI in the background if API key is set
+    if (process.env.GEMINI_API_KEY) {
+      try {
+        const historyRes = await pool.query("SELECT sender_role, message FROM manager_chat_messages WHERE creator_id = $1 ORDER BY created_at ASC", [req.user.id]);
+        
+        let prompt = `You are an AI Talent Manager working at Falcus Media Agency.\n`;
+        prompt += `You are chatting with a creator directly to give them content strategies, growth advice, and motivation.\n\n`;
+        prompt += `Conversation history:\n`;
+        historyRes.rows.forEach(r => {
+          prompt += `${r.sender_role}: ${r.message}\n`;
+        });
+        prompt += `\nAs an AI_ASSISTANT, respond directly to the creator's latest message with expert advice or friendly guidance.`;
+
+        const result = await aiModel.generateContent(prompt);
+        const aiResponseText = result.response.text();
+
+        const { rows: aiRows } = await pool.query(
+          `INSERT INTO manager_chat_messages (creator_id, sender_id, sender_role, message) 
+           VALUES ($1, 0, 'AI_ASSISTANT', $2) RETURNING *`,
+          [req.user.id, aiResponseText]
+        );
+        
+        responseMessages.push(aiRows[0]);
+      } catch (aiErr) {
+        console.error("AI Chat Response Error:", aiErr);
+      }
+    }
+
+    res.json(responseMessages);
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
   }

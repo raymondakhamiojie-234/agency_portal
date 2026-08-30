@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { 
   MessageCircle, LifeBuoy, CheckCircle, Clock, Plus, ArrowRight,
-  Calendar, Video, Send, Bell, CheckSquare
+  Calendar, Video, Send, Bell, CheckSquare, Sparkles
 } from 'lucide-react';
 
 export default function CreatorSupport() {
@@ -125,7 +125,9 @@ export default function CreatorSupport() {
     if (!newTicketMsg.trim() || !activeTicket) return;
     try {
       const res = await axios.post(`/api/manager/tickets/${activeTicket.id}/messages`, { message: newTicketMsg }, { withCredentials: true });
-      setTicketMessages([...ticketMessages, res.data]);
+      // The API now returns an array [userMsg, aiMsg] or just [userMsg]
+      const newMessages = Array.isArray(res.data) ? res.data : [res.data];
+      setTicketMessages([...ticketMessages, ...newMessages]);
       setNewTicketMsg('');
     } catch (err) {
       console.error(err);
@@ -137,7 +139,9 @@ export default function CreatorSupport() {
     if (!newChatMsg.trim()) return;
     try {
       const res = await axios.post('/api/manager/chat', { message: newChatMsg }, { withCredentials: true });
-      setChatMessages([...chatMessages, res.data]);
+      // The API now returns an array [userMsg, aiMsg] or just [userMsg]
+      const newMessages = Array.isArray(res.data) ? res.data : [res.data];
+      setChatMessages([...chatMessages, ...newMessages]);
       setNewChatMsg('');
     } catch (err) {
       console.error(err);
@@ -410,12 +414,14 @@ export default function CreatorSupport() {
                     {/* Replies */}
                     {ticketMessages.map((msg, i) => {
                       const isCreator = msg.sender_role === 'CREATOR';
+                      const isAI = msg.sender_role === 'AI_ASSISTANT';
                       return (
                         <div key={i} className={`flex flex-col max-w-[85%] ${isCreator ? 'self-end items-end' : 'self-start items-start'}`}>
-                          <span className={`text-xs text-gray-500 mb-1 ${isCreator ? 'mr-1' : 'ml-1'}`}>
-                            {isCreator ? 'You' : msg.sender_role} • {new Date(msg.created_at).toLocaleString()}
+                          <span className={`text-xs text-gray-500 mb-1 ${isCreator ? 'mr-1' : 'ml-1'} flex items-center gap-1`}>
+                            {isAI && <Sparkles className="h-3 w-3 text-primary" />}
+                            {isCreator ? 'You' : isAI ? 'AI Support Bot' : msg.sender_role} • {new Date(msg.created_at).toLocaleString()}
                           </span>
-                          <div className={`px-4 py-2.5 rounded-2xl text-sm ${isCreator ? 'bg-primary text-white rounded-tr-sm' : 'bg-white/10 text-white rounded-tl-sm'}`}>
+                          <div className={`px-4 py-2.5 rounded-2xl text-sm ${isCreator ? 'bg-primary text-white rounded-tr-sm' : isAI ? 'bg-primary/20 text-white border border-primary/30 rounded-tl-sm' : 'bg-white/10 text-white rounded-tl-sm'}`}>
                             {msg.message}
                           </div>
                         </div>
@@ -555,12 +561,14 @@ export default function CreatorSupport() {
               
               {chatMessages.map((msg, i) => {
                 const isCreator = msg.sender_role === 'CREATOR';
+                const isAI = msg.sender_role === 'AI_ASSISTANT';
                 return (
                   <div key={i} className={`flex flex-col max-w-[80%] md:max-w-[60%] ${isCreator ? 'self-end items-end' : 'self-start items-start'}`}>
-                    <span className={`text-xs text-gray-500 mb-1 ${isCreator ? 'mr-1' : 'ml-1'}`}>
-                      {new Date(msg.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                    <span className={`text-xs text-gray-500 mb-1 ${isCreator ? 'mr-1' : 'ml-1'} flex items-center gap-1`}>
+                      {isAI && <Sparkles className="h-3 w-3 text-primary" />}
+                      {isCreator ? '' : isAI ? 'AI Talent Manager • ' : ''}{new Date(msg.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                     </span>
-                    <div className={`px-4 py-2.5 rounded-2xl text-sm ${isCreator ? 'bg-primary text-white rounded-tr-sm' : 'bg-white/10 text-white border border-border rounded-tl-sm'}`}>
+                    <div className={`px-4 py-2.5 rounded-2xl text-sm ${isCreator ? 'bg-primary text-white rounded-tr-sm' : isAI ? 'bg-primary/20 border border-primary/30 text-white rounded-tl-sm' : 'bg-white/10 text-white border border-border rounded-tl-sm'}`}>
                       {msg.message}
                     </div>
                   </div>
