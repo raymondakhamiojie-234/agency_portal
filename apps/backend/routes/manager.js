@@ -144,7 +144,7 @@ router.post('/tickets/:id/messages', async (req, res) => {
       });
 
       const response = await axios.post(NVIDIA_INVOKE_URL, {
-        model: "nvidia/llama-3.1-nemotron-70b-instruct",
+        model: "google/gemma-4-31b-it",
         messages: messages,
         max_tokens: 1024,
         temperature: 0.7,
@@ -267,7 +267,7 @@ router.post('/chat', async (req, res) => {
       });
 
       const response = await axios.post(NVIDIA_INVOKE_URL, {
-        model: "meta/llama-3.1-70b-instruct",
+        model: "google/gemma-4-31b-it",
         messages: messages,
         max_tokens: 1024,
         temperature: 0.7,
