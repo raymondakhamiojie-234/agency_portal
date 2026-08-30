@@ -29,6 +29,7 @@ export default function Sidebar({ role = 'CREATOR' }: SidebarProps) {
 
   const adminLinks = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+    { name: 'Support & Manager', path: '/admin/support', icon: MessageCircle },
     { name: 'Creators', path: '/admin/creators', icon: Users },
     { name: 'Earnings', path: '/admin/earnings', icon: Wallet },
     { name: 'Monetization', path: '/admin/monetization', icon: TrendingUp },

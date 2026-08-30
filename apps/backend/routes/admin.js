@@ -152,4 +152,162 @@ router.post('/monetization', async (req, res) => {
   }
 });
 
+// ==========================================
+// ADMIN SUPPORT & TALENT MANAGER
+// ==========================================
+
+// Get list of creators (for the sidebar)
+router.get('/support/creators', async (req, res) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT id, name, email, profile_image 
+      FROM auth_users 
+      WHERE role = 'CREATOR' 
+      ORDER BY name ASC
+    `);
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// TICKETS
+router.get('/support/tickets/:creatorId', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      "SELECT * FROM support_tickets WHERE creator_id = $1 ORDER BY updated_at DESC",
+      [req.params.creatorId]
+    );
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.put('/support/tickets/:id/status', async (req, res) => {
+  try {
+    const { status } = req.body;
+    await pool.query(
+      "UPDATE support_tickets SET status = $1, updated_at = NOW() WHERE id = $2",
+      [status, req.params.id]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.get('/support/tickets/:id/messages', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      "SELECT * FROM support_ticket_messages WHERE ticket_id = $1 ORDER BY created_at ASC",
+      [req.params.id]
+    );
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.post('/support/tickets/:id/messages', async (req, res) => {
+  try {
+    const { message } = req.body;
+    const { rows } = await pool.query(
+      `INSERT INTO support_ticket_messages (ticket_id, sender_id, sender_role, message) 
+       VALUES ($1, $2, 'MANAGER', $3) RETURNING *`,
+      [req.params.id, req.user.id, message]
+    );
+    await pool.query("UPDATE support_tickets SET updated_at = NOW() WHERE id = $1", [req.params.id]);
+    res.json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// DIRECT CHAT
+router.get('/support/chat/:creatorId', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      "SELECT * FROM manager_chat_messages WHERE creator_id = $1 ORDER BY created_at ASC",
+      [req.params.creatorId]
+    );
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.post('/support/chat/:creatorId', async (req, res) => {
+  try {
+    const { message } = req.body;
+    const { rows } = await pool.query(
+      `INSERT INTO manager_chat_messages (creator_id, sender_id, sender_role, message) 
+       VALUES ($1, $2, 'MANAGER', $3) RETURNING *`,
+      [req.params.creatorId, req.user.id, message]
+    );
+    res.json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// TASKS / UPDATES
+router.post('/support/tasks', async (req, res) => {
+  try {
+    const { creator_id, title, description, due_date } = req.body;
+    const { rows } = await pool.query(
+      `INSERT INTO manager_tasks (creator_id, title, description, due_date, status) 
+       VALUES ($1, $2, $3, $4, 'Pending') RETURNING *`,
+      [creator_id, title, description, due_date]
+    );
+    
+    // Also push an update notification
+    await pool.query(
+      `INSERT INTO manager_updates (creator_id, title, content, type) 
+       VALUES ($1, $2, $3, 'Task')`,
+      [creator_id, 'New Task Assigned', title]
+    );
+    
+    res.json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// MEETINGS
+router.get('/support/meetings/:creatorId', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      "SELECT * FROM meetings WHERE creator_id = $1 ORDER BY meeting_date DESC, meeting_time DESC",
+      [req.params.creatorId]
+    );
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.put('/support/meetings/:id', async (req, res) => {
+  try {
+    const { status, meeting_link } = req.body;
+    
+    // Update the meeting
+    const { rows } = await pool.query(
+      "UPDATE meetings SET status = $1, meeting_link = $2, manager_name = $3 WHERE id = $4 RETURNING *",
+      [status, meeting_link, req.user.name, req.params.id]
+    );
+    
+    // Notify creator
+    await pool.query(
+      `INSERT INTO manager_updates (creator_id, title, content, type) 
+       VALUES ($1, $2, $3, 'Meeting')`,
+      [rows[0].creator_id, `Meeting ${status}`, `Your meeting request for ${rows[0].title} was ${status}.`]
+    );
+    
+    res.json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 export default router;

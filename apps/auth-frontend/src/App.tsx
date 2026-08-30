@@ -6,6 +6,7 @@ import AdminEarnings from './pages/admin/AdminEarnings';
 import AdminPayments from './pages/admin/AdminPayments';
 import AdminLoans from './pages/admin/AdminLoans';
 import AdminMonetization from './pages/admin/AdminMonetization';
+import AdminSupport from './pages/admin/AdminSupport';
 import CreatorFinances from './pages/CreatorFinances';
 import CreatorProfile from './pages/CreatorProfile';
 import CreatorSupport from './pages/CreatorSupport';
@@ -42,6 +43,7 @@ function App() {
           <Route path="/settings" element={<div className="text-white">Settings Page (Coming Soon)</div>} />
             
           {/* Admin Routes */}
+          <Route path="/admin/support" element={<AdminSupport />} />
           <Route path="/admin/creators" element={<div className="text-white">Admin Creators (Coming Soon)</div>} />
           <Route path="/admin/earnings" element={<AdminEarnings />} />
           <Route path="/admin/monetization" element={<AdminMonetization />} />
