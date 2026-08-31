@@ -320,4 +320,29 @@ router.put('/profile', async (req, res) => {
   }
 });
 
+// Notifications
+router.get('/notifications', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      "SELECT * FROM notifications WHERE creator_id = $1 ORDER BY created_at DESC",
+      [req.user.id]
+    );
+    res.json(rows.map(r => ({ ...r, type: r.notification_type })));
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.post('/notifications/read', async (req, res) => {
+  try {
+    await pool.query(
+      "UPDATE notifications SET is_read = true WHERE creator_id = $1",
+      [req.user.id]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 export default router;

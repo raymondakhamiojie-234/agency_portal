@@ -149,9 +149,6 @@ router.post('/monetization', async (req, res) => {
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
-  }
-});
-
 // ==========================================
 // ADMIN SUPPORT & TALENT MANAGER
 // ==========================================
@@ -306,6 +303,66 @@ router.put('/support/meetings/:id', async (req, res) => {
     );
     
     res.json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// STATS
+router.get('/stats', async (req, res) => {
+  try {
+    const creatorsRes = await pool.query("SELECT COUNT(*) FROM auth_users WHERE is_admin = false");
+    const loansRes = await pool.query("SELECT COALESCE(SUM(amount), 0) as total FROM loans WHERE status = 'Approved'");
+    const paymentsRes = await pool.query("SELECT COALESCE(SUM(amount), 0) as total FROM payments WHERE status = 'COMPLETED'");
+    const earningsRes = await pool.query("SELECT COALESCE(SUM(amount), 0) as total FROM earnings");
+
+    res.json({
+      totalCreators: parseInt(creatorsRes.rows[0].count),
+      totalActiveLoans: parseFloat(loansRes.rows[0].total),
+      totalPayments: parseFloat(paymentsRes.rows[0].total),
+      platformEarnings: parseFloat(earningsRes.rows[0].total)
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// PAYMENTS
+router.get('/payments', async (req, res) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT p.*, u.name as creator_name, u.email as creator_email
+      FROM payments p
+      JOIN auth_users u ON p.user_id = u.id
+      ORDER BY p.payment_date DESC
+    `);
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// NOTIFICATIONS (Admin Broadcast)
+router.post('/notifications', async (req, res) => {
+  try {
+    const { user_id, title, message, type } = req.body;
+    
+    if (user_id === 'ALL') {
+      const { rows: users } = await pool.query("SELECT id FROM auth_users WHERE is_admin = false");
+      for (const u of users) {
+        await pool.query(
+          "INSERT INTO notifications (creator_id, title, message, notification_type) VALUES ($1, $2, $3, $4)",
+          [u.id, title, message, type]
+        );
+      }
+    } else {
+      await pool.query(
+        "INSERT INTO notifications (creator_id, title, message, notification_type) VALUES ($1, $2, $3, $4)",
+        [user_id, title, message, type]
+      );
+    }
+    res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
   }
