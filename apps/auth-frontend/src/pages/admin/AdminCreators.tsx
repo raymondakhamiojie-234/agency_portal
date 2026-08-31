@@ -271,6 +271,42 @@ export default function AdminCreators() {
                 </div>
 
                 <div className="space-y-4">
+                  <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wider border-b border-white/10 pb-2">Contract Details</h3>
+                  
+                  <div className="flex items-center text-sm">
+                    <span className="text-gray-500 w-24">Percentage:</span>
+                    <span className="text-gray-300 font-medium">
+                      {selectedCreator.contract_percentage ? `${selectedCreator.contract_percentage}%` : 'Not signed'}
+                    </span>
+                  </div>
+                  <div className="flex items-center text-sm">
+                    <span className="text-gray-500 w-24">Signed Date:</span>
+                    <span className="text-gray-300 font-medium">
+                      {selectedCreator.contract_signed_at 
+                        ? new Date(selectedCreator.contract_signed_at).toLocaleDateString() 
+                        : 'N/A'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wider border-b border-white/10 pb-2">Bank Details</h3>
+                  
+                  <div className="flex items-center text-sm">
+                    <span className="text-gray-500 w-24">Bank Name:</span>
+                    <span className="text-gray-300 font-medium">{selectedCreator.bank_name || 'Not provided'}</span>
+                  </div>
+                  <div className="flex items-center text-sm">
+                    <span className="text-gray-500 w-24">Account Name:</span>
+                    <span className="text-gray-300 font-medium">{selectedCreator.account_name || 'Not provided'}</span>
+                  </div>
+                  <div className="flex items-center text-sm">
+                    <span className="text-gray-500 w-24">Account No:</span>
+                    <span className="text-gray-300 font-medium">{selectedCreator.bank_account_number || 'Not provided'}</span>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
                   <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wider border-b border-white/10 pb-2">Social Profiles</h3>
                   
                   {selectedCreator.page_name && (

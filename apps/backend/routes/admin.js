@@ -179,9 +179,13 @@ router.get('/creators/details', async (req, res) => {
       SELECT u.id, u.name, u.email, u.created_at as joined_date,
              cp.full_name, cp.brand_name, cp.phone_number, cp.primary_platform,
              cp.country, cp.page_name, cp.follower_count, cp.page_urls,
-             COALESCE(e.total_earnings, 0) as total_earnings
+             cp.home_address, cp.bank_name, cp.account_name, cp.bank_account_number,
+             COALESCE(e.total_earnings, 0) as total_earnings,
+             ct.revenue_share_percentage as contract_percentage,
+             ct.signed_at as contract_signed_at
       FROM auth_users u
       LEFT JOIN creator_profiles cp ON u.id = cp.user_id
+      LEFT JOIN contracts ct ON u.id = ct.creator_id
       LEFT JOIN (
         SELECT creator_id, SUM(amount) as total_earnings 
         FROM earnings 

@@ -9,17 +9,14 @@ const pool = new Pool({
 
 async function test() {
   try {
-    await pool.query('SELECT COUNT(*) FROM auth_users WHERE is_admin = false');
-    console.log('users ok');
+    const cp = await pool.query("SELECT column_name FROM information_schema.columns WHERE table_name = 'creator_profiles'");
+    console.log('creator_profiles cols:', cp.rows.map(r => r.column_name).join(', '));
     
-    await pool.query("SELECT COALESCE(SUM(remaining_balance), 0) as total FROM loans WHERE status != 'PAID'");
-    console.log('loans ok');
-    
-    await pool.query("SELECT COALESCE(SUM(amount), 0) as total FROM payments WHERE status = 'COMPLETED'");
-    console.log('payments ok');
-    
-    await pool.query("SELECT COALESCE(SUM(amount), 0) as total FROM earnings");
-    console.log('earnings ok');
+    const ct = await pool.query("SELECT column_name FROM information_schema.columns WHERE table_name = 'contracts'");
+    console.log('contracts cols:', ct.rows.map(r => r.column_name).join(', '));
+
+    const bnk = await pool.query("SELECT column_name FROM information_schema.columns WHERE table_name = 'bank_details'");
+    console.log('bank_details cols:', bnk.rows.map(r => r.column_name).join(', '));
     
     process.exit(0);
   } catch (err) {
