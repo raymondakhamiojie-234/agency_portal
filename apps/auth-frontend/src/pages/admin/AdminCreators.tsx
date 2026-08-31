@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Search, Mail, ExternalLink, MoreVertical, TrendingUp, Filter, Users as UsersIcon } from 'lucide-react';
+import { Search, Mail, ExternalLink, MoreVertical, TrendingUp, Filter, Users as UsersIcon, X, Globe, Phone, MapPin, Calendar } from 'lucide-react';
 
 export default function AdminCreators() {
   const [creators, setCreators] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filterPlatform, setFilterPlatform] = useState('ALL');
+  const [selectedCreator, setSelectedCreator] = useState<any>(null);
 
   useEffect(() => {
     fetchCreators();
@@ -163,12 +164,20 @@ export default function AdminCreators() {
                     </td>
                     <td className="px-6 py-5 text-right">
                       <div className="flex items-center justify-end space-x-3">
-                        <button className="p-2 hover:bg-white/10 rounded-lg transition-colors group-hover:text-primary text-gray-500">
+                        <button 
+                          onClick={() => setSelectedCreator(creator)}
+                          className="p-2 hover:bg-white/10 rounded-lg transition-colors group-hover:text-primary text-gray-400 hover:text-white"
+                          title="View Details"
+                        >
                           <ExternalLink className="h-4 w-4" />
                         </button>
-                        <button className="p-2 hover:bg-white/10 rounded-lg transition-colors text-gray-500">
-                          <MoreVertical className="h-4 w-4" />
-                        </button>
+                        <a 
+                          href={`mailto:${creator.email}`}
+                          className="p-2 hover:bg-white/10 rounded-lg transition-colors text-gray-400 hover:text-white"
+                          title="Email Creator"
+                        >
+                          <Mail className="h-4 w-4" />
+                        </a>
                       </div>
                     </td>
                   </tr>
@@ -178,6 +187,142 @@ export default function AdminCreators() {
           </table>
         </div>
       </div>
+
+      {/* Creator Details Modal */}
+      {selectedCreator && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div 
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setSelectedCreator(null)}
+          />
+          <div className="relative bg-[#0a0a0a] border border-white/10 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+            {/* Header */}
+            <div className="p-6 border-b border-white/10 flex justify-between items-start bg-gradient-to-r from-primary/10 to-transparent">
+              <div className="flex items-center space-x-4">
+                <div className="h-16 w-16 rounded-full bg-gradient-to-tr from-primary to-purple-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg shadow-primary/20">
+                  {selectedCreator.brand_name ? selectedCreator.brand_name.charAt(0).toUpperCase() : selectedCreator.name.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-white tracking-tight">
+                    {selectedCreator.brand_name || selectedCreator.name}
+                  </h2>
+                  <p className="text-gray-400">{selectedCreator.name}</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setSelectedCreator(null)}
+                className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-xl transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            
+            {/* Body */}
+            <div className="p-6 overflow-y-auto space-y-8 custom-scrollbar">
+              
+              {/* Key Stats */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-white/5 p-4 rounded-xl border border-white/5">
+                  <p className="text-xs text-gray-500 mb-1 uppercase tracking-wider">Total Earnings</p>
+                  <p className="text-lg font-bold text-green-400">{formatCurrency(parseFloat(selectedCreator.total_earnings))}</p>
+                </div>
+                <div className="bg-white/5 p-4 rounded-xl border border-white/5">
+                  <p className="text-xs text-gray-500 mb-1 uppercase tracking-wider">Followers</p>
+                  <p className="text-lg font-bold text-white">{(selectedCreator.follower_count / 1000).toFixed(1)}k</p>
+                </div>
+                <div className="bg-white/5 p-4 rounded-xl border border-white/5">
+                  <p className="text-xs text-gray-500 mb-1 uppercase tracking-wider">Platform</p>
+                  <p className="text-sm font-bold text-white capitalize mt-1">{selectedCreator.primary_platform || 'N/A'}</p>
+                </div>
+                <div className="bg-white/5 p-4 rounded-xl border border-white/5">
+                  <p className="text-xs text-gray-500 mb-1 uppercase tracking-wider">Joined Date</p>
+                  <p className="text-sm font-bold text-white mt-1">
+                    {new Date(selectedCreator.joined_date).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+
+              {/* Detailed Info */}
+              <div className="grid md:grid-cols-2 gap-8">
+                <div className="space-y-4">
+                  <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wider border-b border-white/10 pb-2">Contact Info</h3>
+                  
+                  <div className="flex items-center text-sm">
+                    <Mail className="h-4 w-4 text-gray-500 mr-3" />
+                    <span className="text-gray-300">{selectedCreator.email}</span>
+                  </div>
+                  <div className="flex items-center text-sm">
+                    <Phone className="h-4 w-4 text-gray-500 mr-3" />
+                    <span className="text-gray-300">{selectedCreator.phone_number || 'Not provided'}</span>
+                  </div>
+                  <div className="flex items-start text-sm">
+                    <MapPin className="h-4 w-4 text-gray-500 mr-3 mt-0.5" />
+                    <span className="text-gray-300">
+                      {selectedCreator.home_address ? (
+                        <>
+                          {selectedCreator.home_address}<br />
+                          {selectedCreator.country}
+                        </>
+                      ) : (
+                        selectedCreator.country || 'Not provided'
+                      )}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wider border-b border-white/10 pb-2">Social Profiles</h3>
+                  
+                  {selectedCreator.page_name && (
+                    <div className="flex items-center text-sm">
+                      <span className="text-gray-500 w-24">Page Name:</span>
+                      <span className="text-gray-300 font-medium">{selectedCreator.page_name}</span>
+                    </div>
+                  )}
+                  
+                  {selectedCreator.page_urls && selectedCreator.page_urls.length > 0 ? (
+                    <div className="space-y-2">
+                      <span className="text-gray-500 text-sm block">Links:</span>
+                      {selectedCreator.page_urls.map((url: string, i: number) => (
+                        <a 
+                          key={i} 
+                          href={url.startsWith('http') ? url : `https://${url}`}
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="flex items-center text-sm text-primary hover:text-primary-light transition-colors p-2 bg-primary/5 rounded-lg border border-primary/10"
+                        >
+                          <Globe className="h-4 w-4 mr-2" />
+                          <span className="truncate">{url}</span>
+                          <ExternalLink className="h-3 w-3 ml-auto" />
+                        </a>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-sm text-gray-500 italic">No links provided</div>
+                  )}
+                </div>
+              </div>
+            </div>
+            
+            {/* Footer */}
+            <div className="p-6 border-t border-white/10 bg-black/20 flex justify-end">
+              <a 
+                href={`mailto:${selectedCreator.email}`}
+                className="bg-white/10 hover:bg-white/20 text-white px-6 py-2.5 rounded-xl font-medium transition-all mr-3 flex items-center"
+              >
+                <Mail className="h-4 w-4 mr-2" />
+                Contact Creator
+              </a>
+              <button 
+                onClick={() => setSelectedCreator(null)}
+                className="bg-primary hover:bg-primary-dark text-white px-6 py-2.5 rounded-xl font-medium transition-all shadow-[0_0_15px_rgba(99,102,255,0.3)] hover:shadow-[0_0_25px_rgba(99,102,255,0.5)]"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
