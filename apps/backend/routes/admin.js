@@ -172,6 +172,31 @@ router.get('/support/creators', async (req, res) => {
   }
 });
 
+// Get comprehensive list of creators with their details (for the Creators page)
+router.get('/creators/details', async (req, res) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT u.id, u.name, u.email, u.created_at as joined_date,
+             cp.full_name, cp.brand_name, cp.phone_number, cp.primary_platform,
+             cp.country, cp.page_name, cp.follower_count, cp.page_urls,
+             COALESCE(e.total_earnings, 0) as total_earnings
+      FROM auth_users u
+      LEFT JOIN creator_profiles cp ON u.id = cp.user_id
+      LEFT JOIN (
+        SELECT creator_id, SUM(amount) as total_earnings 
+        FROM earnings 
+        GROUP BY creator_id
+      ) e ON u.id = e.creator_id
+      WHERE u.is_admin = false
+      ORDER BY u.created_at DESC
+    `);
+    res.json(rows);
+  } catch (err) {
+    console.error('Error fetching creator details:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // TICKETS
 router.get('/support/tickets/:creatorId', async (req, res) => {
   try {
