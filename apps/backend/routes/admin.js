@@ -149,6 +149,9 @@ router.post('/monetization', async (req, res) => {
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // ==========================================
 // ADMIN SUPPORT & TALENT MANAGER
 // ==========================================
