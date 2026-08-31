@@ -160,13 +160,14 @@ router.post('/monetization', async (req, res) => {
 router.get('/support/creators', async (req, res) => {
   try {
     const { rows } = await pool.query(`
-      SELECT id, name, email, profile_image 
+      SELECT id, name, email 
       FROM auth_users 
-      WHERE role = 'CREATOR' 
+      WHERE is_admin = false 
       ORDER BY name ASC
     `);
     res.json(rows);
   } catch (err) {
+    console.error('Error fetching creators:', err);
     res.status(500).json({ error: 'Server error' });
   }
 });
