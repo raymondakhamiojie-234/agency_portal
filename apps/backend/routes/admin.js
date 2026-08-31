@@ -340,7 +340,7 @@ router.put('/support/meetings/:id', async (req, res) => {
 router.get('/stats', async (req, res) => {
   try {
     const creatorsRes = await pool.query("SELECT COUNT(*) FROM auth_users WHERE is_admin = false");
-    const loansRes = await pool.query("SELECT COALESCE(SUM(amount), 0) as total FROM loans WHERE status = 'Approved'");
+    const loansRes = await pool.query("SELECT COALESCE(SUM(remaining_balance), 0) as total FROM loans WHERE status != 'PAID'");
     const paymentsRes = await pool.query("SELECT COALESCE(SUM(amount), 0) as total FROM payments WHERE status = 'COMPLETED'");
     const earningsRes = await pool.query("SELECT COALESCE(SUM(amount), 0) as total FROM earnings");
 
