@@ -48,9 +48,14 @@ export default function AdminSupport() {
   // Load creator data when selected
   useEffect(() => {
     if (activeCreator) {
+      // Clear previous state immediately to avoid showing old data
+      setChatMessages([]);
+      setTicketMessages([]);
+      setActiveTicket(null);
+      setMeetings([]);
+      
       fetchTickets();
       fetchChat();
-      // Tasks and meetings could be loaded when tab is clicked, but loading all is fine for now
       fetchMeetings();
     }
   }, [activeCreator]);
