@@ -21,6 +21,10 @@ export const pool = new Pool({
   }
 });
 
+pool.on('error', (err, client) => {
+  console.error('Unexpected error on idle client', err);
+});
+
 pool.connect()
   .then(() => console.log('Connected to PostgreSQL'))
   .catch(err => console.error('PostgreSQL connection error', err));
