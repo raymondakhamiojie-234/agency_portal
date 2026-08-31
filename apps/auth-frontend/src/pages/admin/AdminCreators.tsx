@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Search, Mail, ExternalLink, MoreVertical, TrendingUp, Filter, Users as UsersIcon, X, Globe, Phone, MapPin, Calendar } from 'lucide-react';
+import { Search, Mail, ExternalLink, TrendingUp, Filter, Users as UsersIcon, X, Globe, Phone, MapPin } from 'lucide-react';
 
 export default function AdminCreators() {
   const [creators, setCreators] = useState<any[]>([]);
