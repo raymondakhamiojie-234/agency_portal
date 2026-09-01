@@ -40,6 +40,9 @@ export default function Login() {
       
       <div className="z-10 w-full max-w-md">
         <div className="text-center mb-10">
+          <div className="flex justify-center mb-6">
+            <img src="/favicon.jpg" alt="Falcus Media Logo" className="h-20 w-20 rounded-2xl shadow-xl shadow-primary/20 object-cover" />
+          </div>
           <h1 className="text-4xl font-bold text-white mb-2 tracking-tight">Welcome Back</h1>
           <p className="text-muted-foreground">Sign in to Falcus Media Ltd</p>
         </div>

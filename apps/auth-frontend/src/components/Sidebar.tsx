@@ -45,7 +45,10 @@ export default function Sidebar({ role = 'CREATOR' }: SidebarProps) {
   return (
     <aside className="w-64 h-screen bg-black/40 backdrop-blur-md border-r border-border hidden md:flex flex-col sticky top-0">
       <div className="p-6">
-        <h2 className="text-xl font-bold text-white tracking-tight">Falcus Media</h2>
+        <div className="flex items-center space-x-3 mb-2">
+          <img src="/favicon.jpg" alt="Logo" className="w-8 h-8 rounded-lg shadow-md shadow-primary/20" />
+          <h2 className="text-xl font-bold text-white tracking-tight">Falcus Media</h2>
+        </div>
         <p className="text-xs text-primary font-medium mt-1 uppercase tracking-wider">
           {role} PORTAL
         </p>

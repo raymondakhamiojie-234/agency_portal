@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, Loader2, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Mail, Lock, Loader2, ArrowRight, Shield } from 'lucide-react';
 import axios from 'axios';
 
 export default function AdminLogin() {
@@ -45,12 +45,16 @@ export default function AdminLogin() {
       <div className="absolute -bottom-1/4 -right-1/4 w-[50vw] h-[50vw] bg-purple-600/10 rounded-full blur-[120px] mix-blend-screen pointer-events-none" />
       
       <div className="z-10 w-full max-w-md">
-        <div className="text-center mb-10 flex flex-col items-center">
-          <div className="w-16 h-16 bg-white/5 rounded-2xl border border-white/10 flex items-center justify-center mb-6 shadow-2xl">
-            <ShieldCheck className="w-8 h-8 text-primary" />
+        <div className="text-center mb-10">
+          <div className="flex justify-center mb-6">
+            <img src="/favicon.jpg" alt="Falcus Media Logo" className="h-20 w-20 rounded-2xl shadow-xl shadow-primary/20 object-cover" />
           </div>
-          <h1 className="text-4xl font-bold text-white mb-2 tracking-tight">Admin Portal</h1>
-          <p className="text-muted-foreground">Secure access for Falcus Media staff</p>
+          <div className="inline-flex items-center justify-center space-x-2 bg-red-500/10 border border-red-500/20 px-3 py-1 rounded-full mb-4">
+            <Shield className="h-4 w-4 text-red-500" />
+            <span className="text-red-500 text-sm font-semibold uppercase tracking-wider">Admin Portal</span>
+          </div>
+          <h1 className="text-4xl font-bold text-white mb-2 tracking-tight">Agency Control</h1>
+          <p className="text-gray-400">Sign in to manage Falcus Media operations</p>
         </div>
 
         <div className="bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl p-8 relative">

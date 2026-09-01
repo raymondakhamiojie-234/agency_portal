@@ -39,8 +39,11 @@ export default function Signup() {
       
       <div className="z-10 w-full max-w-md">
         <div className="text-center mb-10">
-          <h1 className="text-4xl font-bold text-white mb-2 tracking-tight">Create Account</h1>
-          <p className="text-muted-foreground">Join Falcus Media Ltd today</p>
+          <div className="flex justify-center mb-6">
+            <img src="/favicon.jpg" alt="Falcus Media Logo" className="h-20 w-20 rounded-2xl shadow-xl shadow-primary/20 object-cover" />
+          </div>
+          <h1 className="text-4xl font-bold text-white mb-2 tracking-tight">Apply to join</h1>
+          <p className="text-muted-foreground">Falcus Media Agency</p>
         </div>
 
         <div className="glass-card rounded-2xl p-8 relative">
