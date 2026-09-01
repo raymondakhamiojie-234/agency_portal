@@ -139,6 +139,12 @@ router.post('/tickets/:id/messages', async (req, res) => {
       responseMessages.push(aiMsgRows[0]);
     } catch (aiErr) {
       console.error("AI Ticket Response Error:", aiErr.response?.data || aiErr.message);
+      const { rows: aiMsgRows } = await pool.query(
+        `INSERT INTO support_ticket_messages (ticket_id, sender_id, sender_role, message) 
+         VALUES ($1, 0, 'AI_ASSISTANT', $2) RETURNING *`,
+        [req.params.id, "I'm having trouble connecting to my AI service at the moment. Please try again later."]
+      );
+      responseMessages.push(aiMsgRows[0]);
     }
 
     res.json(responseMessages);
@@ -240,6 +246,12 @@ router.post('/chat', async (req, res) => {
       responseMessages.push(aiRows[0]);
     } catch (aiErr) {
       console.error("AI Chat Response Error:", aiErr.response?.data || aiErr.message);
+      const { rows: aiRows } = await pool.query(
+        `INSERT INTO manager_chat_messages (creator_id, sender_id, sender_role, message) 
+         VALUES ($1, 0, 'AI_ASSISTANT', $2) RETURNING *`,
+        [req.user.id, "I'm having trouble connecting to my AI service at the moment. Please try again later."]
+      );
+      responseMessages.push(aiRows[0]);
     }
 
     res.json(responseMessages);

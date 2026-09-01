@@ -24,6 +24,8 @@ export default function AdminSupport() {
   const [taskForm, setTaskForm] = useState({ title: '', description: '', due_date: '' });
 
   const [meetings, setMeetings] = useState<any[]>([]);
+  const [isSendingTicket, setIsSendingTicket] = useState(false);
+  const [isSendingChat, setIsSendingChat] = useState(false);
   const [showMeetModal, setShowMeetModal] = useState(false);
   const [activeMeeting, setActiveMeeting] = useState<any | null>(null);
   const [meetLink, setMeetLink] = useState('');
@@ -89,7 +91,8 @@ export default function AdminSupport() {
 
   const handleSendTicketMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTicketMsg.trim() || !activeTicket) return;
+    if (!newTicketMsg.trim() || !activeTicket || isSendingTicket) return;
+    setIsSendingTicket(true);
     try {
       const res = await axios.post(`/api/admin/support/tickets/${activeTicket.id}/messages`, { message: newTicketMsg }, { withCredentials: true });
       setTicketMessages([...ticketMessages, res.data]);
@@ -97,6 +100,8 @@ export default function AdminSupport() {
       setTimeout(() => ticketBottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
     } catch (err) {
       console.error(err);
+    } finally {
+      setIsSendingTicket(false);
     }
   };
 
@@ -123,7 +128,8 @@ export default function AdminSupport() {
 
   const handleSendChat = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newChatMsg.trim() || !activeCreator) return;
+    if (!newChatMsg.trim() || !activeCreator || isSendingChat) return;
+    setIsSendingChat(true);
     try {
       const res = await axios.post(`/api/admin/support/chat/${activeCreator.id}`, { message: newChatMsg }, { withCredentials: true });
       setChatMessages([...chatMessages, res.data]);
@@ -131,6 +137,8 @@ export default function AdminSupport() {
       setTimeout(() => chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
     } catch (err) {
       console.error(err);
+    } finally {
+      setIsSendingChat(false);
     }
   };
 
@@ -322,25 +330,23 @@ export default function AdminSupport() {
                         <div ref={ticketBottomRef} />
                       </div>
 
-                      <div className="p-4 border-t border-border bg-black/60 shrink-0">
-                        <form onSubmit={handleSendTicketMessage} className="flex items-center gap-3">
-                          <input 
-                            type="text" 
-                            className="flex-1 bg-white/5 border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary"
-                            placeholder="Type a response..."
-                            value={newTicketMsg}
-                            onChange={e => setNewTicketMsg(e.target.value)}
-                            disabled={activeTicket.status === 'Resolved'}
-                          />
-                          <button 
-                            type="submit" 
-                            disabled={!newTicketMsg.trim() || activeTicket.status === 'Resolved'}
-                            className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center text-white hover:bg-primary/90 transition-colors disabled:opacity-50"
-                          >
-                            <Send className="w-5 h-5" />
-                          </button>
-                        </form>
-                      </div>
+                      <form onSubmit={handleSendTicketMessage} className="p-4 border-t border-white/5 bg-black/40 flex gap-2">
+                        <input 
+                          type="text" 
+                          value={newTicketMsg}
+                          onChange={e => setNewTicketMsg(e.target.value)}
+                          placeholder="Type a reply..." 
+                          disabled={isSendingTicket || activeTicket.status === 'Resolved'}
+                          className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-primary transition-colors disabled:opacity-50"
+                        />
+                        <button 
+                          type="submit" 
+                          disabled={!newTicketMsg.trim() || isSendingTicket || activeTicket.status === 'Resolved'}
+                          className="bg-primary hover:bg-primary/90 text-white p-3 rounded-xl disabled:opacity-50 transition-colors flex items-center justify-center"
+                        >
+                          {isSendingTicket ? <span className="animate-spin h-5 w-5 border-2 border-white/20 border-t-white rounded-full"></span> : <Send className="h-5 w-5" />}
+                        </button>
+                      </form>
                     </>
                   ) : (
                     <div className="flex-1 flex items-center justify-center text-gray-500">
@@ -377,24 +383,23 @@ export default function AdminSupport() {
                   )}
                   <div ref={chatBottomRef} />
                 </div>
-                <div className="p-4 border-t border-border bg-black/60 shrink-0">
-                  <form onSubmit={handleSendChat} className="flex items-center gap-3">
-                    <input 
-                      type="text" 
-                      className="flex-1 bg-white/5 border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary transition-colors"
-                      placeholder="Message creator..."
-                      value={newChatMsg}
-                      onChange={e => setNewChatMsg(e.target.value)}
-                    />
-                    <button 
-                      type="submit" 
-                      disabled={!newChatMsg.trim()}
-                      className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center text-white hover:bg-primary/90 transition-colors disabled:opacity-50"
-                    >
-                      <Send className="w-5 h-5" />
-                    </button>
-                  </form>
-                </div>
+                <form onSubmit={handleSendChat} className="p-4 border-t border-white/5 bg-black/40 flex gap-2">
+                  <input 
+                    type="text" 
+                    value={newChatMsg}
+                    onChange={e => setNewChatMsg(e.target.value)}
+                    placeholder="Message creator..." 
+                    disabled={isSendingChat}
+                    className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary transition-colors disabled:opacity-50"
+                  />
+                  <button 
+                    type="submit" 
+                    disabled={!newChatMsg.trim() || isSendingChat}
+                    className="bg-primary hover:bg-primary/90 text-white p-3 rounded-xl disabled:opacity-50 transition-colors flex items-center justify-center shadow-lg shadow-primary/20"
+                  >
+                    {isSendingChat ? <span className="animate-spin h-5 w-5 border-2 border-white/20 border-t-white rounded-full"></span> : <Send className="h-5 w-5" />}
+                  </button>
+                </form>
               </div>
             )}
 
