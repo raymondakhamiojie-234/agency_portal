@@ -57,9 +57,15 @@ export default function CreatorFinances() {
       </div>
 
       {/* PDF Only Header */}
-      <div className="hidden print:block text-black mb-8 border-b border-gray-300 pb-4">
-        <h1 className="text-3xl font-bold">Financial Statement</h1>
-        <p className="text-sm text-gray-500">Generated on {new Date().toLocaleDateString()}</p>
+      <div className="hidden print:flex items-center justify-between text-black mb-8 border-b border-gray-300 pb-6">
+        <div>
+          <h1 className="text-3xl font-bold text-black mb-1">Financial Statement</h1>
+          <p className="text-sm text-gray-500">Generated on {new Date().toLocaleDateString()}</p>
+        </div>
+        <div className="flex flex-col items-end">
+          <img src="/favicon.jpg" alt="Falcus Media" className="h-12 w-12 rounded-lg mb-2 object-cover" />
+          <h2 className="text-lg font-bold text-black">Falcus Media Agency</h2>
+        </div>
       </div>
 
       {/* Overview Cards */}
