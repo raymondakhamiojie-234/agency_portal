@@ -66,52 +66,96 @@ router.put('/earnings/:id', async (req, res) => {
   }
 });
 
-async function processEarningsRecords(records) {
-  let imported = 0;
-  let failed = 0;
-  let errors = [];
+async function analyzeEarningsRecords(records) {
+  // Fetch all creators with their profiles and contracts
+  const { rows: creators } = await pool.query(`
+    SELECT u.id, u.email, u.name, 
+           cp.page_name, cp.brand_name, cp.full_name,
+           c.revenue_share_percentage
+    FROM auth_users u
+    LEFT JOIN creator_profiles cp ON u.id = cp.user_id
+    LEFT JOIN contracts c ON u.id = c.creator_id AND c.status = 'ACTIVE'
+    WHERE u.is_admin = false
+  `);
 
-  for (const record of records) {
-    try {
-      const { email, platform, period, amount, status, withholding_tax } = record;
-      
-      const userRes = await pool.query("SELECT id FROM auth_users WHERE email = $1", [email]);
-      if (userRes.rows.length === 0) {
-        failed++;
-        errors.push({ email, error: 'User not found' });
-        continue;
-      }
-      
-      const user = userRes.rows[0];
-      
-      let earningDate = new Date(period);
-      if (isNaN(earningDate.getTime())) {
-        earningDate = new Date();
-      }
-      
-      await pool.query(
-        `INSERT INTO earnings (creator_id, platform, amount, earning_date, payout_status, withholding_tax) 
-         VALUES ($1, $2, $3, $4, $5, $6)`,
-        [user.id, platform, parseFloat(amount), earningDate, status || 'UNPAID', parseFloat(withholding_tax || 0)]
-      );
-      imported++;
-    } catch (err) {
-      failed++;
-      errors.push({ email: record?.email || 'Unknown', error: err.message });
+  let perfectMatches = [];
+  let similarMatches = [];
+  let unmatched = [];
+
+  for (let i = 0; i < records.length; i++) {
+    const record = records[i];
+    // Determine fields whether record is object or array
+    let page_name = record.page_name || record.email || record[0];
+    let amount = record.amount || record[1] || 0;
+    let withholding_tax = record.withholding_tax || record[2] || 0;
+    let earning_date = record.earning_date || record.period || record[3] || new Date().toISOString();
+    let platform = record.platform || record[4] || 'Facebook';
+    let status = record.status || record.payout_status || record[5] || 'UNPAID';
+
+    if (page_name === 'page_name' || page_name === 'email') continue; // Skip header row if parsed as array
+
+    const searchString = String(page_name || '').toLowerCase().trim();
+    if (!searchString) continue;
+
+    // 1. Try exact match
+    let exactMatch = creators.find(c => 
+      (c.email && c.email.toLowerCase() === searchString) ||
+      (c.page_name && c.page_name.toLowerCase() === searchString) ||
+      (c.brand_name && c.brand_name.toLowerCase() === searchString) ||
+      (c.name && c.name.toLowerCase() === searchString)
+    );
+
+    const parsedRecord = {
+      original_id: i,
+      search_term: searchString,
+      platform,
+      amount: parseFloat(amount) || 0,
+      withholding_tax: parseFloat(withholding_tax) || 0,
+      earning_date: earning_date,
+      payout_status: status
+    };
+
+    if (exactMatch) {
+      perfectMatches.push({
+        ...parsedRecord,
+        creator: exactMatch
+      });
+      continue;
+    }
+
+    // 2. Try similar match
+    let suggestions = creators.filter(c => 
+      (c.page_name && c.page_name.toLowerCase().includes(searchString)) ||
+      (searchString.includes(c.page_name?.toLowerCase())) ||
+      (c.brand_name && c.brand_name.toLowerCase().includes(searchString)) ||
+      (c.name && c.name.toLowerCase().includes(searchString))
+    );
+
+    if (suggestions.length > 0) {
+      similarMatches.push({
+        ...parsedRecord,
+        suggestions: suggestions.slice(0, 3)
+      });
+    } else {
+      unmatched.push({
+        ...parsedRecord,
+        suggestions: creators.slice(0, 50) // Return some for dropdown, maybe all if < 100
+      });
     }
   }
-  return { imported, failed, errors };
+
+  return { perfectMatches, similarMatches, unmatched };
 }
 
-router.post('/earnings/import', async (req, res) => {
+router.post('/earnings/analyze-import', async (req, res) => {
   const { records } = req.body;
   if (!Array.isArray(records)) return res.status(400).json({ error: 'Invalid data' });
   
-  const result = await processEarningsRecords(records);
+  const result = await analyzeEarningsRecords(records);
   res.json(result);
 });
 
-router.post('/earnings/import-sheet', async (req, res) => {
+router.post('/earnings/analyze-sheet', async (req, res) => {
   const { sheetUrl } = req.body;
   if (!sheetUrl) return res.status(400).json({ error: 'Missing sheet URL' });
 
@@ -127,10 +171,10 @@ router.post('/earnings/import-sheet', async (req, res) => {
     const response = await axios.get(csvUrl, { responseType: 'text' });
     
     Papa.parse(response.data, {
-      header: true,
+      header: false, // Parse as array so we can handle both strict positional and varied sheets
       skipEmptyLines: true,
       complete: async (results) => {
-        const importResult = await processEarningsRecords(results.data);
+        const importResult = await analyzeEarningsRecords(results.data);
         res.json(importResult);
       },
       error: (error) => {
@@ -141,6 +185,43 @@ router.post('/earnings/import-sheet', async (req, res) => {
     console.error("Google Sheets Fetch Error:", err.message);
     res.status(500).json({ error: 'Failed to fetch Google Sheet. Make sure anyone with the link can view.' });
   }
+});
+
+router.post('/earnings/confirm-import', async (req, res) => {
+  const { records } = req.body;
+  if (!Array.isArray(records)) return res.status(400).json({ error: 'Invalid data' });
+  
+  let imported = 0;
+  let failed = 0;
+
+  for (const record of records) {
+    try {
+      const { creator_id, platform, amount, withholding_tax, earning_date, payout_status } = record;
+      
+      const contractRes = await pool.query("SELECT revenue_share_percentage FROM contracts WHERE creator_id = $1 AND status = 'ACTIVE' ORDER BY created_at DESC LIMIT 1", [creator_id]);
+      const revShare = contractRes.rows.length > 0 ? parseFloat(contractRes.rows[0].revenue_share_percentage) : 100;
+      
+      // Business Logic: (earnings - withholding_tax) * (revShare / 100)
+      const rawAmount = parseFloat(amount) || 0;
+      const tax = parseFloat(withholding_tax) || 0;
+      const finalAmount = (rawAmount - tax) * (revShare / 100);
+
+      let parsedDate = new Date(earning_date);
+      if (isNaN(parsedDate.getTime())) parsedDate = new Date();
+
+      await pool.query(
+        `INSERT INTO earnings (creator_id, platform, amount, earning_date, payout_status, withholding_tax) 
+         VALUES ($1, $2, $3, $4, $5, $6)`,
+        [creator_id, platform || 'Facebook', finalAmount, parsedDate, payout_status || 'UNPAID', tax]
+      );
+      imported++;
+    } catch (err) {
+      console.error("Confirm Import Error:", err);
+      failed++;
+    }
+  }
+  
+  res.json({ success: true, imported, failed });
 });
 
 router.delete('/earnings/:id', async (req, res) => {

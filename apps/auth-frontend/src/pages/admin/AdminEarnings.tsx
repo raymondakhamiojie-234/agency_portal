@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Papa from 'papaparse';
-import { UploadCloud, CheckCircle, AlertCircle, Plus, Edit2, Trash2, X, Link } from 'lucide-react';
+import { UploadCloud, CheckCircle, AlertCircle, Plus, Edit2, Trash2, X, Link, Bot, ArrowRight } from 'lucide-react';
 
 export default function AdminEarnings() {
   const [earnings, setEarnings] = useState<any[]>([]);
@@ -12,6 +12,15 @@ export default function AdminEarnings() {
   const [sheetUrl, setSheetUrl] = useState('');
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<any>(null);
+
+  // AI Analysis State
+  const [analysisResult, setAnalysisResult] = useState<{
+    perfectMatches: any[];
+    similarMatches: any[];
+    unmatched: any[];
+  } | null>(null);
+  const [resolutions, setResolutions] = useState<Record<number, string>>({});
+  const [confirming, setConfirming] = useState(false);
 
   // Modal State
   const [creators, setCreators] = useState<any[]>([]);
@@ -55,22 +64,24 @@ export default function AdminEarnings() {
     if (!csvFile) return;
     setImporting(true);
     setImportResult(null);
+    setAnalysisResult(null);
 
     Papa.parse(csvFile, {
       header: true,
       skipEmptyLines: true,
       complete: async (results) => {
         try {
-          // Send raw parsed records to backend for validation and insertion
-          const res = await axios.post('/api/admin/earnings/import', {
+          const res = await axios.post('/api/admin/earnings/analyze-import', {
             records: results.data
           }, { withCredentials: true });
           
-          setImportResult(res.data);
-          fetchEarnings(); // Refresh table
+          setAnalysisResult(res.data);
+          const initialRes: Record<number, string> = {};
+          res.data.perfectMatches.forEach((r: any) => initialRes[r.original_id] = r.creator.id);
+          setResolutions(initialRes);
         } catch (err: any) {
-          console.error("Import failed", err);
-          setImportResult({ error: err.response?.data?.error || 'Import failed' });
+          console.error("Analysis failed", err);
+          setImportResult({ error: err.response?.data?.error || 'Analysis failed' });
         } finally {
           setImporting(false);
           setCsvFile(null); // Reset file
@@ -87,17 +98,50 @@ export default function AdminEarnings() {
     if (!sheetUrl) return;
     setImporting(true);
     setImportResult(null);
+    setAnalysisResult(null);
 
     try {
-      const res = await axios.post('/api/admin/earnings/import-sheet', { sheetUrl }, { withCredentials: true });
-      setImportResult(res.data);
+      const res = await axios.post('/api/admin/earnings/analyze-sheet', { sheetUrl }, { withCredentials: true });
+      setAnalysisResult(res.data);
+      const initialRes: Record<number, string> = {};
+      res.data.perfectMatches.forEach((r: any) => initialRes[r.original_id] = r.creator.id);
+      setResolutions(initialRes);
       setSheetUrl('');
-      fetchEarnings();
     } catch (err: any) {
-      console.error("Import failed", err);
-      setImportResult({ error: err.response?.data?.error || 'Import failed' });
+      console.error("Analysis failed", err);
+      setImportResult({ error: err.response?.data?.error || 'Analysis failed' });
     } finally {
       setImporting(false);
+    }
+  };
+
+  const handleConfirmInject = async () => {
+    if (!analysisResult) return;
+    setConfirming(true);
+    
+    const finalRecords: any[] = [];
+    const allRecords = [...analysisResult.perfectMatches, ...analysisResult.similarMatches, ...analysisResult.unmatched];
+    
+    for (const rec of allRecords) {
+      const decision = resolutions[rec.original_id];
+      if (decision && decision !== 'SKIP') {
+        finalRecords.push({
+          ...rec,
+          creator_id: decision
+        });
+      }
+    }
+
+    try {
+      const res = await axios.post('/api/admin/earnings/confirm-import', { records: finalRecords }, { withCredentials: true });
+      setImportResult({ imported: res.data.imported, failed: res.data.failed });
+      setAnalysisResult(null);
+      fetchEarnings();
+    } catch (err: any) {
+       console.error(err);
+       setImportResult({ error: 'Failed to inject data' });
+    } finally {
+      setConfirming(false);
     }
   };
 
@@ -220,8 +264,87 @@ export default function AdminEarnings() {
           </div>
         </div>
 
+        {/* AI Analysis Review */}
+        {analysisResult && (
+          <div className="mt-8 bg-black/40 backdrop-blur-md border border-border rounded-2xl p-6 relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500"></div>
+            <div className="flex items-start mb-6">
+              <div className="bg-blue-500/20 p-3 rounded-full mr-4 border border-blue-500/30">
+                <Bot className="h-6 w-6 text-blue-400" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-white">AI Analysis Complete</h3>
+                <p className="text-gray-300 text-sm mt-1">
+                  I found <span className="font-bold text-green-400">{analysisResult.perfectMatches.length} perfect matches</span>,{' '}
+                  <span className="font-bold text-yellow-400">{analysisResult.similarMatches.length} similar matches</span>, and{' '}
+                  <span className="font-bold text-red-400">{analysisResult.unmatched.length} unmatched records</span>.
+                  Please map the questionable records below before I calculate the revenue splits and inject them.
+                </p>
+              </div>
+            </div>
+            
+            {([...analysisResult.similarMatches, ...analysisResult.unmatched]).length > 0 && (
+              <div className="space-y-3 mb-6 max-h-[28rem] overflow-y-auto pr-2">
+                {[...analysisResult.similarMatches, ...analysisResult.unmatched].map((rec: any, idx) => {
+                  const isSimilar = analysisResult.similarMatches.includes(rec);
+                  return (
+                    <div key={idx} className="bg-white/5 border border-white/10 rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                      <div>
+                        <div className="flex items-center space-x-2 mb-1">
+                          {isSimilar ? <AlertCircle className="h-4 w-4 text-yellow-400" /> : <AlertCircle className="h-4 w-4 text-red-400" />}
+                          <span className="font-semibold text-white">{rec.search_term || 'Unknown Page'}</span>
+                        </div>
+                        <div className="text-xs text-gray-400">
+                          Amount: {formatCurrency(rec.amount)} | Tax: {formatCurrency(rec.withholding_tax)}
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center space-x-3">
+                        <ArrowRight className="h-4 w-4 text-gray-500 hidden md:block" />
+                        <select 
+                          className="bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-primary w-full md:w-64"
+                          value={resolutions[rec.original_id] || ''}
+                          onChange={(e) => setResolutions({...resolutions, [rec.original_id]: e.target.value})}
+                        >
+                          <option value="" disabled>Select Creator mapping...</option>
+                          <option value="SKIP">⏭️ Skip / Ignore this row</option>
+                          {rec.suggestions?.map((s: any) => (
+                            <option key={s.id} value={s.id}>{s.name} ({s.page_name || 'No Page'})</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            
+            {([...analysisResult.similarMatches, ...analysisResult.unmatched]).length === 0 && (
+              <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-4 mb-6 text-green-400 text-sm flex items-center">
+                <CheckCircle className="h-5 w-5 mr-2" /> All records matched perfectly! You can proceed to inject.
+              </div>
+            )}
+            
+            <div className="flex justify-end pt-4 border-t border-white/10">
+              <button
+                onClick={() => { setAnalysisResult(null); setResolutions({}); }}
+                className="px-4 py-2 text-sm font-medium text-gray-400 hover:text-white mr-4 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmInject}
+                disabled={confirming || Object.keys(resolutions).length < (analysisResult.perfectMatches.length + analysisResult.similarMatches.length + analysisResult.unmatched.length)}
+                className="bg-primary hover:bg-primary/90 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+              >
+                {confirming ? 'Injecting...' : 'Confirm & Inject Data'}
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Import Results */}
-        {importResult && (
+        {importResult && !analysisResult && (
           <div className={`mt-4 p-4 rounded-xl border ${importResult.error ? 'bg-red-500/10 border-red-500/50 text-red-400' : 'bg-green-500/10 border-green-500/50 text-green-400'}`}>
             {importResult.error ? (
               <div className="flex items-center"><AlertCircle className="h-5 w-5 mr-2" /> {importResult.error}</div>
