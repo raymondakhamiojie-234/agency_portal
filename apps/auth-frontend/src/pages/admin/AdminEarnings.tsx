@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Papa from 'papaparse';
-import { UploadCloud, CheckCircle, AlertCircle, Plus, Edit2, Trash2, X, Link, Bot, ArrowRight } from 'lucide-react';
+import { UploadCloud, CheckCircle, AlertCircle, Plus, Edit2, Trash2, X, Link, Bot, ArrowRight, Search, SkipForward } from 'lucide-react';
 
 export default function AdminEarnings() {
   const [earnings, setEarnings] = useState<any[]>([]);
@@ -21,6 +21,7 @@ export default function AdminEarnings() {
   } | null>(null);
   const [resolutions, setResolutions] = useState<Record<number, string>>({});
   const [confirming, setConfirming] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Modal State
   const [creators, setCreators] = useState<any[]>([]);
@@ -136,6 +137,7 @@ export default function AdminEarnings() {
       const res = await axios.post('/api/admin/earnings/confirm-import', { records: finalRecords }, { withCredentials: true });
       setImportResult({ imported: res.data.imported, failed: res.data.failed });
       setAnalysisResult(null);
+      setSearchQuery('');
       fetchEarnings();
     } catch (err: any) {
        console.error(err);
@@ -145,16 +147,16 @@ export default function AdminEarnings() {
     }
   };
 
-  const markUnselectedAsSkip = () => {
+  const handleSkipAllUnresolved = () => {
     if (!analysisResult) return;
-    const newResolutions = { ...resolutions };
+    const newRes = { ...resolutions };
     const needsReview = [...analysisResult.similarMatches, ...analysisResult.unmatched];
     needsReview.forEach(rec => {
-      if (!newResolutions[rec.original_id]) {
-        newResolutions[rec.original_id] = 'SKIP';
+      if (!newRes[rec.original_id]) {
+        newRes[rec.original_id] = 'SKIP';
       }
     });
-    setResolutions(newResolutions);
+    setResolutions(newRes);
   };
 
   const formatCurrency = (amount: number, curr: string = 'USD') => {
@@ -296,8 +298,31 @@ export default function AdminEarnings() {
             </div>
             
             {([...analysisResult.similarMatches, ...analysisResult.unmatched]).length > 0 && (
+              <div className="mb-4 flex flex-col md:flex-row justify-between items-center gap-4 border-b border-white/10 pb-4 mt-2">
+                <div className="relative w-full md:w-96">
+                  <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search by page name..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full bg-black/40 border border-white/10 rounded-lg pl-9 pr-4 py-2 text-sm text-white focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <button
+                  onClick={handleSkipAllUnresolved}
+                  className="w-full md:w-auto bg-white/5 hover:bg-white/10 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center"
+                >
+                  <SkipForward className="h-4 w-4 mr-2 text-gray-400" /> Skip All Unresolved
+                </button>
+              </div>
+            )}
+            
+            {([...analysisResult.similarMatches, ...analysisResult.unmatched]).length > 0 && (
               <div className="space-y-3 mb-6 max-h-[28rem] overflow-y-auto pr-2">
-                {[...analysisResult.similarMatches, ...analysisResult.unmatched].map((rec: any, idx) => {
+                {[...analysisResult.similarMatches, ...analysisResult.unmatched]
+                  .filter(rec => !searchQuery || (rec.search_term || '').toLowerCase().includes(searchQuery.toLowerCase()))
+                  .map((rec: any, idx) => {
                   const isSimilar = analysisResult.similarMatches.includes(rec);
                   return (
                     <div key={idx} className="bg-white/5 border border-white/10 rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -337,28 +362,20 @@ export default function AdminEarnings() {
               </div>
             )}
             
-            <div className="flex flex-col sm:flex-row justify-between items-center pt-4 border-t border-white/10 gap-4">
+            <div className="flex justify-end pt-4 border-t border-white/10">
               <button
-                onClick={markUnselectedAsSkip}
-                className="text-sm font-medium text-gray-400 hover:text-white transition-colors underline decoration-dashed underline-offset-4 self-start sm:self-auto"
+                onClick={() => { setAnalysisResult(null); setResolutions({}); setSearchQuery(''); }}
+                className="px-4 py-2 text-sm font-medium text-gray-400 hover:text-white mr-4 transition-colors"
               >
-                Mark unselected as Skip
+                Cancel
               </button>
-              <div className="flex justify-end w-full sm:w-auto">
-                <button
-                  onClick={() => { setAnalysisResult(null); setResolutions({}); }}
-                  className="px-4 py-2 text-sm font-medium text-gray-400 hover:text-white mr-4 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleConfirmInject}
-                  disabled={confirming || Object.keys(resolutions).length < (analysisResult.perfectMatches.length + analysisResult.similarMatches.length + analysisResult.unmatched.length)}
-                  className="bg-primary hover:bg-primary/90 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
-                >
-                  {confirming ? 'Injecting...' : 'Confirm & Inject Data'}
-                </button>
-              </div>
+              <button
+                onClick={handleConfirmInject}
+                disabled={confirming || Object.keys(resolutions).length < (analysisResult.perfectMatches.length + analysisResult.similarMatches.length + analysisResult.unmatched.length)}
+                className="bg-primary hover:bg-primary/90 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+              >
+                {confirming ? 'Injecting...' : 'Confirm & Inject Data'}
+              </button>
             </div>
           </div>
         )}
