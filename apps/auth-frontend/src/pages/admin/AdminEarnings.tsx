@@ -145,6 +145,18 @@ export default function AdminEarnings() {
     }
   };
 
+  const markUnselectedAsSkip = () => {
+    if (!analysisResult) return;
+    const newResolutions = { ...resolutions };
+    const needsReview = [...analysisResult.similarMatches, ...analysisResult.unmatched];
+    needsReview.forEach(rec => {
+      if (!newResolutions[rec.original_id]) {
+        newResolutions[rec.original_id] = 'SKIP';
+      }
+    });
+    setResolutions(newResolutions);
+  };
+
   const formatCurrency = (amount: number, curr: string = 'USD') => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: curr }).format(amount);
   };
@@ -325,20 +337,28 @@ export default function AdminEarnings() {
               </div>
             )}
             
-            <div className="flex justify-end pt-4 border-t border-white/10">
+            <div className="flex flex-col sm:flex-row justify-between items-center pt-4 border-t border-white/10 gap-4">
               <button
-                onClick={() => { setAnalysisResult(null); setResolutions({}); }}
-                className="px-4 py-2 text-sm font-medium text-gray-400 hover:text-white mr-4 transition-colors"
+                onClick={markUnselectedAsSkip}
+                className="text-sm font-medium text-gray-400 hover:text-white transition-colors underline decoration-dashed underline-offset-4 self-start sm:self-auto"
               >
-                Cancel
+                Mark unselected as Skip
               </button>
-              <button
-                onClick={handleConfirmInject}
-                disabled={confirming || Object.keys(resolutions).length < (analysisResult.perfectMatches.length + analysisResult.similarMatches.length + analysisResult.unmatched.length)}
-                className="bg-primary hover:bg-primary/90 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
-              >
-                {confirming ? 'Injecting...' : 'Confirm & Inject Data'}
-              </button>
+              <div className="flex justify-end w-full sm:w-auto">
+                <button
+                  onClick={() => { setAnalysisResult(null); setResolutions({}); }}
+                  className="px-4 py-2 text-sm font-medium text-gray-400 hover:text-white mr-4 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmInject}
+                  disabled={confirming || Object.keys(resolutions).length < (analysisResult.perfectMatches.length + analysisResult.similarMatches.length + analysisResult.unmatched.length)}
+                  className="bg-primary hover:bg-primary/90 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                >
+                  {confirming ? 'Injecting...' : 'Confirm & Inject Data'}
+                </button>
+              </div>
             </div>
           </div>
         )}
