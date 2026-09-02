@@ -18,16 +18,48 @@ router.get('/earnings', async (req, res) => {
     
     res.json(rows.map(row => ({
       id: row.id,
+      creator_id: row.creator_id,
       creator_name: row.creator_name,
       creator_email: row.creator_email,
       platform: row.platform,
       period: row.earning_date ? new Date(row.earning_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'Unknown',
+      earning_date: row.earning_date,
       amount: row.amount,
+      withholding_tax: row.withholding_tax,
       currency: 'USD',
       status: 'VERIFIED',
       payment_status: row.payout_status ? row.payout_status.toUpperCase() : 'UNPAID'
     })));
   } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.post('/earnings', async (req, res) => {
+  try {
+    const { creator_id, platform, amount, earning_date, payout_status, withholding_tax } = req.body;
+    await pool.query(
+      `INSERT INTO earnings (creator_id, platform, amount, earning_date, payout_status, withholding_tax) 
+       VALUES ($1, $2, $3, $4, $5, $6)`,
+      [creator_id, platform, parseFloat(amount), earning_date ? new Date(earning_date) : new Date(), payout_status || 'UNPAID', parseFloat(withholding_tax || 0)]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.put('/earnings/:id', async (req, res) => {
+  try {
+    const { platform, amount, earning_date, payout_status, withholding_tax } = req.body;
+    await pool.query(
+      `UPDATE earnings SET platform=$1, amount=$2, earning_date=$3, payout_status=$4, withholding_tax=$5 WHERE id=$6`,
+      [platform, parseFloat(amount), earning_date ? new Date(earning_date) : new Date(), payout_status || 'UNPAID', parseFloat(withholding_tax || 0), req.params.id]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ error: 'Server error' });
   }
 });

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Papa from 'papaparse';
-import { UploadCloud, CheckCircle, AlertCircle, Plus, Edit2, Trash2 } from 'lucide-react';
+import { UploadCloud, CheckCircle, AlertCircle, Plus, Edit2, Trash2, X } from 'lucide-react';
 
 export default function AdminEarnings() {
   const [earnings, setEarnings] = useState<any[]>([]);
@@ -12,9 +12,26 @@ export default function AdminEarnings() {
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<any>(null);
 
+  // Modal State
+  const [creators, setCreators] = useState<any[]>([]);
+  const [showModal, setShowModal] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState({ id: '', creator_id: '', platform: 'Instagram', amount: '', withholding_tax: '', earning_date: '', payout_status: 'UNPAID' });
+  const [saving, setSaving] = useState(false);
+
   useEffect(() => {
     fetchEarnings();
+    fetchCreators();
   }, []);
+
+  const fetchCreators = async () => {
+    try {
+      const res = await axios.get('/api/admin/support/creators', { withCredentials: true });
+      setCreators(res.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const fetchEarnings = async () => {
     try {
@@ -76,6 +93,44 @@ export default function AdminEarnings() {
       fetchEarnings();
     } catch (err) {
       console.error("Delete failed", err);
+    }
+  };
+
+  const openAddModal = () => {
+    setIsEditing(false);
+    setFormData({ id: '', creator_id: creators[0]?.id || '', platform: 'Instagram', amount: '', withholding_tax: '', earning_date: new Date().toISOString().split('T')[0], payout_status: 'UNPAID' });
+    setShowModal(true);
+  };
+
+  const openEditModal = (record: any) => {
+    setIsEditing(true);
+    setFormData({
+      id: record.id,
+      creator_id: record.creator_id,
+      platform: record.platform,
+      amount: record.amount,
+      withholding_tax: record.withholding_tax || '',
+      earning_date: record.earning_date ? new Date(record.earning_date).toISOString().split('T')[0] : '',
+      payout_status: record.payment_status === 'PAID' ? 'PAID' : 'UNPAID'
+    });
+    setShowModal(true);
+  };
+
+  const handleModalSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      if (isEditing) {
+        await axios.put(`/api/admin/earnings/${formData.id}`, formData, { withCredentials: true });
+      } else {
+        await axios.post('/api/admin/earnings', formData, { withCredentials: true });
+      }
+      setShowModal(false);
+      fetchEarnings();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -155,7 +210,7 @@ export default function AdminEarnings() {
       <div className="bg-black/40 backdrop-blur-md border border-border rounded-2xl overflow-hidden">
         <div className="px-6 py-5 border-b border-border flex justify-between items-center">
           <h2 className="text-lg font-semibold text-white">All Earnings Records</h2>
-          <button className="flex items-center text-sm font-medium text-white bg-primary hover:bg-primary/90 px-4 py-2 rounded-lg transition-colors">
+          <button onClick={openAddModal} className="flex items-center text-sm font-medium text-white bg-primary hover:bg-primary/90 px-4 py-2 rounded-lg transition-colors">
             <Plus className="h-4 w-4 mr-2" /> Add Record
           </button>
         </div>
@@ -203,7 +258,7 @@ export default function AdminEarnings() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right space-x-2">
-                      <button className="text-gray-400 hover:text-white transition-colors p-1">
+                      <button onClick={() => openEditModal(e)} className="text-gray-400 hover:text-white transition-colors p-1">
                         <Edit2 className="h-4 w-4" />
                       </button>
                       <button onClick={() => handleDelete(e.id)} className="text-gray-400 hover:text-red-400 transition-colors p-1">
@@ -217,6 +272,115 @@ export default function AdminEarnings() {
           </table>
         </div>
       </div>
+
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="bg-[#111111] border border-white/10 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
+            <div className="p-6 border-b border-white/10 flex justify-between items-center bg-white/[0.02]">
+              <h2 className="text-xl font-bold text-white">{isEditing ? 'Edit Earning Record' : 'Add Earning Record'}</h2>
+              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-white transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <form onSubmit={handleModalSubmit} className="p-6 space-y-4">
+              {!isEditing && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Creator</label>
+                  <select 
+                    required 
+                    value={formData.creator_id} 
+                    onChange={e => setFormData({...formData, creator_id: e.target.value})}
+                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-primary"
+                  >
+                    <option value="" disabled>Select a creator</option>
+                    {creators.map(c => <option key={c.id} value={c.id}>{c.name} ({c.email})</option>)}
+                  </select>
+                </div>
+              )}
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Platform</label>
+                <input 
+                  type="text" 
+                  required 
+                  value={formData.platform} 
+                  onChange={e => setFormData({...formData, platform: e.target.value})}
+                  className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-primary"
+                  placeholder="e.g. Instagram, TikTok"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Amount (USD)</label>
+                  <input 
+                    type="number" 
+                    step="0.01" 
+                    required 
+                    value={formData.amount} 
+                    onChange={e => setFormData({...formData, amount: e.target.value})}
+                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-primary"
+                    placeholder="0.00"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Tax Deducted</label>
+                  <input 
+                    type="number" 
+                    step="0.01" 
+                    value={formData.withholding_tax} 
+                    onChange={e => setFormData({...formData, withholding_tax: e.target.value})}
+                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-primary"
+                    placeholder="0.00"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Earning Date</label>
+                  <input 
+                    type="date" 
+                    required 
+                    value={formData.earning_date} 
+                    onChange={e => setFormData({...formData, earning_date: e.target.value})}
+                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-primary [color-scheme:dark]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Payout Status</label>
+                  <select 
+                    value={formData.payout_status} 
+                    onChange={e => setFormData({...formData, payout_status: e.target.value})}
+                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-primary"
+                  >
+                    <option value="UNPAID">UNPAID</option>
+                    <option value="PAID">PAID</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="pt-4 flex gap-3">
+                <button 
+                  type="button" 
+                  onClick={() => setShowModal(false)}
+                  className="flex-1 bg-white/5 hover:bg-white/10 text-white px-4 py-2.5 rounded-xl transition-colors font-medium"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  disabled={saving}
+                  className="flex-1 bg-primary hover:bg-primary/90 text-white px-4 py-2.5 rounded-xl transition-colors font-medium disabled:opacity-50"
+                >
+                  {saving ? 'Saving...' : 'Save Record'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
