@@ -134,7 +134,7 @@ export default function AdminEarnings() {
           setImporting(false);
         }
       },
-      error: (error) => {
+      error: () => {
         setImportResult({ error: 'Failed to download Google Sheet. Ensure the link is public.' });
         setImporting(false);
       }
