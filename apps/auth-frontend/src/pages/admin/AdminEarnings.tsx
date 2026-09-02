@@ -101,44 +101,19 @@ export default function AdminEarnings() {
     setImportResult(null);
     setAnalysisResult(null);
 
-    const match = sheetUrl.match(/\/d\/([a-zA-Z0-9-_]+)/);
-    if (!match) {
-      setImportResult({ error: 'Invalid Google Sheets URL' });
+    try {
+      const res = await axios.post('/api/admin/earnings/analyze-sheet', { sheetUrl }, { withCredentials: true });
+      setAnalysisResult(res.data);
+      const initialRes: Record<number, string> = {};
+      res.data.perfectMatches.forEach((r: any) => initialRes[r.original_id] = r.creator.id);
+      setResolutions(initialRes);
+      setSheetUrl('');
+    } catch (err: any) {
+      console.error("Analysis failed", err);
+      setImportResult({ error: err.response?.data?.error || 'Analysis failed' });
+    } finally {
       setImporting(false);
-      return;
     }
-    const spreadsheetId = match[1];
-    const gidMatch = sheetUrl.match(/[#&]gid=([0-9]+)/);
-    const gid = gidMatch ? gidMatch[1] : '0';
-    const csvUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=csv&gid=${gid}`;
-
-    Papa.parse(csvUrl, {
-      download: true,
-      header: false,
-      skipEmptyLines: true,
-      complete: async (results) => {
-        try {
-          const res = await axios.post('/api/admin/earnings/analyze-import', {
-            records: results.data
-          }, { withCredentials: true });
-          
-          setAnalysisResult(res.data);
-          const initialRes: Record<number, string> = {};
-          res.data.perfectMatches.forEach((r: any) => initialRes[r.original_id] = r.creator.id);
-          setResolutions(initialRes);
-          setSheetUrl('');
-        } catch (err: any) {
-          console.error("Analysis failed", err);
-          setImportResult({ error: err.response?.data?.error || 'Analysis failed' });
-        } finally {
-          setImporting(false);
-        }
-      },
-      error: () => {
-        setImportResult({ error: 'Failed to download Google Sheet. Ensure the link is public.' });
-        setImporting(false);
-      }
-    });
   };
 
   const handleConfirmInject = async () => {

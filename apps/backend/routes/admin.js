@@ -168,7 +168,13 @@ router.post('/earnings/analyze-sheet', async (req, res) => {
 
   try {
     const csvUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=csv&gid=${gid}`;
-    const response = await axios.get(csvUrl, { responseType: 'text' });
+    const response = await axios.get(csvUrl, { 
+      responseType: 'text',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
+      }
+    });
     
     Papa.parse(response.data, {
       header: false, // Parse as array so we can handle both strict positional and varied sheets
