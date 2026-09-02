@@ -174,8 +174,13 @@ router.post('/earnings/analyze-sheet', async (req, res) => {
       header: false, // Parse as array so we can handle both strict positional and varied sheets
       skipEmptyLines: true,
       complete: async (results) => {
-        const importResult = await analyzeEarningsRecords(results.data);
-        res.json(importResult);
+        try {
+          const importResult = await analyzeEarningsRecords(results.data);
+          res.json(importResult);
+        } catch (err) {
+          console.error("Analysis Error:", err);
+          res.status(500).json({ error: 'Failed to analyze records: ' + err.message });
+        }
       },
       error: (error) => {
         res.status(400).json({ error: 'Failed to parse CSV from Google Sheet' });
