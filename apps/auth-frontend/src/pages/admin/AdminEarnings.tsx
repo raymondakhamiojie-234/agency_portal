@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Papa from 'papaparse';
-import { UploadCloud, CheckCircle, AlertCircle, Plus, Edit2, Trash2, X } from 'lucide-react';
+import { UploadCloud, CheckCircle, AlertCircle, Plus, Edit2, Trash2, X, Link } from 'lucide-react';
 
 export default function AdminEarnings() {
   const [earnings, setEarnings] = useState<any[]>([]);
@@ -9,6 +9,7 @@ export default function AdminEarnings() {
   
   // CSV State
   const [csvFile, setCsvFile] = useState<File | null>(null);
+  const [sheetUrl, setSheetUrl] = useState('');
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<any>(null);
 
@@ -82,6 +83,24 @@ export default function AdminEarnings() {
     });
   };
 
+  const importSheet = async () => {
+    if (!sheetUrl) return;
+    setImporting(true);
+    setImportResult(null);
+
+    try {
+      const res = await axios.post('/api/admin/earnings/import-sheet', { sheetUrl }, { withCredentials: true });
+      setImportResult(res.data);
+      setSheetUrl('');
+      fetchEarnings();
+    } catch (err: any) {
+      console.error("Import failed", err);
+      setImportResult({ error: err.response?.data?.error || 'Import failed' });
+    } finally {
+      setImporting(false);
+    }
+  };
+
   const formatCurrency = (amount: number, curr: string = 'USD') => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: curr }).format(amount);
   };
@@ -143,39 +162,63 @@ export default function AdminEarnings() {
 
       {/* CSV Uploader */}
       <div className="bg-black/40 backdrop-blur-md border border-border rounded-2xl p-6">
-        <h2 className="text-lg font-semibold text-white mb-4">Bulk Import CSV</h2>
+        <h2 className="text-lg font-semibold text-white mb-4">Bulk Import Earnings</h2>
         
-        <div className="border-2 border-dashed border-border rounded-xl p-8 flex flex-col items-center justify-center text-center">
-          <UploadCloud className="h-10 w-10 text-primary mb-3" />
-          <p className="text-sm text-gray-300 mb-1">Drag and drop your CSV file here, or click to browse</p>
-          <p className="text-xs text-gray-500 mb-4">Headers required: email, platform, period, amount, currency, status</p>
-          
-          <input 
-            type="file" 
-            accept=".csv" 
-            onChange={handleFileUpload} 
-            className="hidden" 
-            id="csv-upload" 
-          />
-          <label 
-            htmlFor="csv-upload" 
-            className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg cursor-pointer transition-colors text-sm font-medium"
-          >
-            {csvFile ? csvFile.name : 'Select File'}
-          </label>
-        </div>
-
-        {csvFile && (
-          <div className="mt-4 flex justify-end">
-            <button
-              onClick={processCsv}
-              disabled={importing}
-              className="bg-primary hover:bg-primary/90 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 flex items-center"
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* CSV File Upload */}
+          <div className="border-2 border-dashed border-border rounded-xl p-6 flex flex-col items-center justify-center text-center">
+            <UploadCloud className="h-8 w-8 text-primary mb-3" />
+            <p className="text-sm text-gray-300 mb-1">Upload CSV File</p>
+            <p className="text-xs text-gray-500 mb-4">Headers required: email, platform, period, amount, status, withholding_tax</p>
+            
+            <input 
+              type="file" 
+              accept=".csv" 
+              onChange={handleFileUpload} 
+              className="hidden" 
+              id="csv-upload" 
+            />
+            <label 
+              htmlFor="csv-upload" 
+              className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg cursor-pointer transition-colors text-sm font-medium"
             >
-              {importing ? 'Processing...' : 'Start Import'}
+              {csvFile ? csvFile.name : 'Select File'}
+            </label>
+            {csvFile && (
+              <button
+                onClick={processCsv}
+                disabled={importing}
+                className="mt-4 bg-primary hover:bg-primary/90 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 w-full"
+              >
+                {importing ? 'Processing...' : 'Start CSV Import'}
+              </button>
+            )}
+          </div>
+
+          {/* Google Sheets Link */}
+          <div className="border-2 border-dashed border-border rounded-xl p-6 flex flex-col items-center justify-center text-center">
+            <div className="bg-green-500/10 p-2 rounded-full mb-3">
+               <Link className="h-6 w-6 text-green-500" />
+            </div>
+            <p className="text-sm text-gray-300 mb-1">Import from Google Sheets</p>
+            <p className="text-xs text-gray-500 mb-4">Paste a viewable Google Sheets link</p>
+            
+            <input 
+              type="url" 
+              placeholder="https://docs.google.com/spreadsheets/d/..."
+              value={sheetUrl}
+              onChange={e => setSheetUrl(e.target.value)}
+              className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-white mb-4 focus:outline-none focus:border-primary"
+            />
+            <button
+              onClick={importSheet}
+              disabled={importing || !sheetUrl}
+              className="bg-primary hover:bg-primary/90 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 w-full"
+            >
+              {importing ? 'Processing...' : 'Import from Sheet'}
             </button>
           </div>
-        )}
+        </div>
 
         {/* Import Results */}
         {importResult && (

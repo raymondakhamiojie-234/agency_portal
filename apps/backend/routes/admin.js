@@ -1,4 +1,6 @@
 import express from 'express';
+import axios from 'axios';
+import Papa from 'papaparse';
 import { pool } from '../server.js';
 import { requireAuth, requireAdmin } from './auth.js';
 
@@ -64,19 +66,14 @@ router.put('/earnings/:id', async (req, res) => {
   }
 });
 
-router.post('/earnings/import', async (req, res) => {
-  const { records } = req.body;
-  if (!Array.isArray(records)) return res.status(400).json({ error: 'Invalid data' });
-  
+async function processEarningsRecords(records) {
   let imported = 0;
   let failed = 0;
   let errors = [];
 
   for (const record of records) {
     try {
-      // Input from CSV: email, platform, period, amount, currency, status
-      // We map this to: creator_id, platform, earning_date, amount, payout_status
-      const { email, platform, period, amount, status } = record;
+      const { email, platform, period, amount, status, withholding_tax } = record;
       
       const userRes = await pool.query("SELECT id FROM auth_users WHERE email = $1", [email]);
       if (userRes.rows.length === 0) {
@@ -87,25 +84,63 @@ router.post('/earnings/import', async (req, res) => {
       
       const user = userRes.rows[0];
       
-      // Attempt to parse 'period' into a valid date, fallback to now
       let earningDate = new Date(period);
       if (isNaN(earningDate.getTime())) {
         earningDate = new Date();
       }
       
       await pool.query(
-        `INSERT INTO earnings (creator_id, platform, amount, earning_date, payout_status) 
-         VALUES ($1, $2, $3, $4, $5)`,
-        [user.id, platform, parseFloat(amount), earningDate, status || 'Unpaid']
+        `INSERT INTO earnings (creator_id, platform, amount, earning_date, payout_status, withholding_tax) 
+         VALUES ($1, $2, $3, $4, $5, $6)`,
+        [user.id, platform, parseFloat(amount), earningDate, status || 'UNPAID', parseFloat(withholding_tax || 0)]
       );
       imported++;
     } catch (err) {
       failed++;
-      errors.push({ email: record.email, error: err.message });
+      errors.push({ email: record?.email || 'Unknown', error: err.message });
     }
   }
+  return { imported, failed, errors };
+}
+
+router.post('/earnings/import', async (req, res) => {
+  const { records } = req.body;
+  if (!Array.isArray(records)) return res.status(400).json({ error: 'Invalid data' });
   
-  res.json({ imported, failed, errors });
+  const result = await processEarningsRecords(records);
+  res.json(result);
+});
+
+router.post('/earnings/import-sheet', async (req, res) => {
+  const { sheetUrl } = req.body;
+  if (!sheetUrl) return res.status(400).json({ error: 'Missing sheet URL' });
+
+  const match = sheetUrl.match(/\/d\/([a-zA-Z0-9-_]+)/);
+  if (!match) return res.status(400).json({ error: 'Invalid Google Sheets URL' });
+  const spreadsheetId = match[1];
+  
+  const gidMatch = sheetUrl.match(/[#&]gid=([0-9]+)/);
+  const gid = gidMatch ? gidMatch[1] : '0';
+
+  try {
+    const csvUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=csv&gid=${gid}`;
+    const response = await axios.get(csvUrl, { responseType: 'text' });
+    
+    Papa.parse(response.data, {
+      header: true,
+      skipEmptyLines: true,
+      complete: async (results) => {
+        const importResult = await processEarningsRecords(results.data);
+        res.json(importResult);
+      },
+      error: (error) => {
+        res.status(400).json({ error: 'Failed to parse CSV from Google Sheet' });
+      }
+    });
+  } catch (err) {
+    console.error("Google Sheets Fetch Error:", err.message);
+    res.status(500).json({ error: 'Failed to fetch Google Sheet. Make sure anyone with the link can view.' });
+  }
 });
 
 router.delete('/earnings/:id', async (req, res) => {
