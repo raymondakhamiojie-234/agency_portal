@@ -173,6 +173,23 @@ export default function AdminEarnings() {
     }
   };
 
+  const handleTogglePaymentStatus = async (record: any) => {
+    try {
+      const newStatus = record.payment_status === 'PAID' ? 'UNPAID' : 'PAID';
+      await axios.put(`/api/admin/earnings/${record.id}`, {
+        platform: record.platform,
+        amount: record.amount,
+        withholding_tax: record.withholding_tax || 0,
+        earning_date: record.earning_date || new Date().toISOString(),
+        payout_status: newStatus
+      }, { withCredentials: true });
+      fetchEarnings();
+    } catch (err) {
+      console.error("Status update failed", err);
+      alert("Failed to update status. Please try again.");
+    }
+  };
+
   const openAddModal = () => {
     setIsEditing(false);
     setFormData({ id: '', creator_id: creators[0]?.id || '', platform: 'Instagram', amount: '', withholding_tax: '', earning_date: new Date().toISOString().split('T')[0], payout_status: 'UNPAID' });
@@ -454,11 +471,15 @@ export default function AdminEarnings() {
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
-                        e.payment_status === 'PAID' ? 'bg-green-500/10 text-green-400' : 'bg-gray-500/10 text-gray-400'
-                      }`}>
+                      <button 
+                        onClick={() => handleTogglePaymentStatus(e)}
+                        title="Click to toggle status"
+                        className={`px-2.5 py-1 rounded-full text-xs font-medium cursor-pointer hover:opacity-80 transition-opacity ${
+                          e.payment_status === 'PAID' ? 'bg-green-500/10 text-green-400' : 'bg-gray-500/10 text-gray-400'
+                        }`}
+                      >
                         {e.payment_status}
-                      </span>
+                      </button>
                     </td>
                     <td className="px-6 py-4 text-right space-x-2">
                       <button onClick={() => openEditModal(e)} className="text-gray-400 hover:text-white transition-colors p-1">
