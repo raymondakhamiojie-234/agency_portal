@@ -18,6 +18,8 @@ import CreatorInvoices from './pages/CreatorInvoices';
 import CreatorMonetization from './pages/CreatorMonetization';
 import Notifications from './pages/Notifications';
 import Signup from './pages/Signup';
+import ForgotPassword from './pages/ForgotPassword';
+import Settings from './pages/Settings';
 
 function App() {
   return (
@@ -26,6 +28,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/admin-login" element={<AdminLogin />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         
         {/* Protected Routes Wrapper */}
@@ -43,7 +46,7 @@ function App() {
           
           {/* Redirect old earnings path to new finances page */}
           <Route path="/earnings" element={<Navigate to="/finances" replace />} />
-          <Route path="/settings" element={<div className="text-white">Settings Page (Coming Soon)</div>} />
+          <Route path="/settings" element={<Settings />} />
             
           {/* Admin Routes */}
           <Route path="/admin/support" element={<AdminSupport />} />

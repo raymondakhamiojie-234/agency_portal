@@ -559,4 +559,44 @@ router.post('/notifications', async (req, res) => {
   }
 });
 
+// PASSWORD RESET REQUESTS
+router.get('/password-requests', async (req, res) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT p.*, u.name, u.id as user_id 
+      FROM password_reset_requests p
+      LEFT JOIN auth_users u ON p.email = u.email
+      ORDER BY p.created_at DESC
+    `);
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.put('/reset-user-password', async (req, res) => {
+  const { requestId, email, newPassword } = req.body;
+  if (!email || !newPassword) return res.status(400).json({ error: 'Email and new password required' });
+  
+  try {
+    const { rows } = await pool.query('SELECT id FROM auth_users WHERE email = $1 AND is_admin = false', [email]);
+    if (rows.length === 0) return res.status(404).json({ error: 'User not found or is admin' });
+    
+    const userId = rows[0].id;
+    const argon2 = await import('argon2');
+    const hashedPassword = await argon2.default.hash(newPassword);
+    
+    await pool.query('UPDATE auth_accounts SET password = $1 WHERE "userId" = $2', [hashedPassword, userId]);
+    
+    if (requestId) {
+      await pool.query("UPDATE password_reset_requests SET status = 'RESOLVED', resolved_at = CURRENT_TIMESTAMP WHERE id = $1", [requestId]);
+    }
+    
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Reset user password error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 export default router;
