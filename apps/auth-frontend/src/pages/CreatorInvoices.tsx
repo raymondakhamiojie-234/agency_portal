@@ -82,7 +82,7 @@ export default function CreatorInvoices() {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <a 
-                        href={`http://localhost:4000/api/invoices/${i.id}/download`}
+                        href={`${import.meta.env.VITE_API_URL || ''}/api/invoices/${i.id}/download`}
                         target="_blank"
                         rel="noreferrer"
                         className="inline-flex items-center text-xs font-medium text-primary hover:text-primary/80 transition-colors bg-primary/10 hover:bg-primary/20 px-3 py-1.5 rounded-lg"

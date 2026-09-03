@@ -157,6 +157,93 @@ router.get('/invoices', async (req, res) => {
   }
 });
 
+router.get('/invoices/:id/download', async (req, res) => {
+  try {
+    // Both ADMIN and the specific CREATOR should be able to download the invoice.
+    // auth.js sets req.user. We'll check if they own it or if they're admin.
+    const { rows } = await pool.query(
+      `SELECT i.*, u.name as user_name, u.email as user_email,
+              cp.full_name, cp.home_address
+       FROM invoices i
+       JOIN auth_users u ON i.creator_id = u.id
+       LEFT JOIN creator_profiles cp ON u.id = cp.user_id
+       WHERE i.id = $1`,
+      [req.params.id]
+    );
+
+    if (rows.length === 0) return res.status(404).json({ error: 'Invoice not found' });
+    
+    const invoice = rows[0];
+    
+    if (req.user.role !== 'ADMIN' && req.user.id !== invoice.creator_id) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    const PDFDocument = (await import('pdfkit')).default;
+    const doc = new PDFDocument({ margin: 50 });
+
+    res.setHeader('Content-disposition', `attachment; filename="${invoice.invoice_number}.pdf"`);
+    res.setHeader('Content-type', 'application/pdf');
+
+    doc.pipe(res);
+
+    // Document header
+    doc.fontSize(24).font('Helvetica-Bold').text('INVOICE', { align: 'right' });
+    doc.moveDown();
+    
+    doc.fontSize(10).font('Helvetica');
+    doc.text('Falcus Media Ltd');
+    doc.text('support@falcusmedia.com');
+    doc.moveDown();
+
+    // Invoice details
+    doc.font('Helvetica-Bold').text('Invoice Number: ', { continued: true }).font('Helvetica').text(invoice.invoice_number);
+    doc.font('Helvetica-Bold').text('Date: ', { continued: true }).font('Helvetica').text(new Date(invoice.created_at).toLocaleDateString());
+    doc.font('Helvetica-Bold').text('Period: ', { continued: true }).font('Helvetica').text(`${invoice.month}/${invoice.year}`);
+    doc.font('Helvetica-Bold').text('Status: ', { continued: true }).font('Helvetica').text(invoice.status);
+    doc.moveDown(2);
+
+    // Bill To
+    doc.fontSize(12).font('Helvetica-Bold').text('Bill To:');
+    doc.fontSize(10).font('Helvetica');
+    doc.text(invoice.full_name || invoice.user_name || 'Unknown');
+    doc.text(invoice.user_email || 'Unknown');
+    if (invoice.home_address) doc.text(invoice.home_address);
+    doc.moveDown(2);
+
+    // Table Header
+    const tableTop = doc.y;
+    doc.font('Helvetica-Bold');
+    doc.text('Description', 50, tableTop);
+    doc.text('Amount', 400, tableTop, { width: 100, align: 'right' });
+    
+    doc.moveTo(50, tableTop + 15).lineTo(500, tableTop + 15).stroke();
+    
+    // Table Content
+    let y = tableTop + 25;
+    doc.font('Helvetica');
+    doc.text(`Earnings for ${invoice.month}/${invoice.year}`, 50, y);
+    doc.text(`$${parseFloat(invoice.total_amount).toFixed(2)}`, 400, y, { width: 100, align: 'right' });
+    
+    y += 20;
+    doc.text('Withholding Tax', 50, y);
+    doc.text(`-$${parseFloat(invoice.withholding_tax || 0).toFixed(2)}`, 400, y, { width: 100, align: 'right' });
+    
+    doc.moveTo(50, y + 15).lineTo(500, y + 15).stroke();
+    
+    // Total
+    y += 25;
+    doc.font('Helvetica-Bold');
+    doc.text('Total Due:', 300, y, { width: 100, align: 'right' });
+    doc.text(`$${parseFloat(invoice.net_amount).toFixed(2)}`, 400, y, { width: 100, align: 'right' });
+
+    doc.end();
+  } catch (err) {
+    console.error('PDF Generation Error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 router.get('/monetization', async (req, res) => {
   try {
     // We didn't create monetization in legacy table dump? Let's just catch and return [] for now if not exists

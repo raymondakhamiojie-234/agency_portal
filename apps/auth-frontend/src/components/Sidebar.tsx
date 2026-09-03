@@ -25,6 +25,7 @@ export default function Sidebar({ role = 'CREATOR' }: SidebarProps) {
     { name: 'Finances', path: '/finances', icon: DollarSign },
     { name: 'Loan Request', path: '/loan', icon: CreditCard },
     { name: 'Contracts', path: '/contracts', icon: FileText },
+    { name: 'Settings', path: '/settings', icon: Settings },
   ];
 
   const adminLinks = [

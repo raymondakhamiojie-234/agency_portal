@@ -599,4 +599,122 @@ router.put('/reset-user-password', async (req, res) => {
   }
 });
 
+// ==========================================
+// ADMIN INVOICES
+// ==========================================
+
+router.get('/invoices', async (req, res) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT i.*, u.name as user_name, u.email as user_email
+      FROM invoices i
+      LEFT JOIN auth_users u ON i.creator_id = u.id
+      ORDER BY i.created_at DESC
+    `);
+    res.json(rows);
+  } catch (err) {
+    console.error('Error fetching invoices:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.post('/invoices', async (req, res) => {
+  const { creator_id, month, year, total_amount, withholding_tax } = req.body;
+  if (!creator_id || !month || !year || !total_amount) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+  
+  try {
+    const tax = parseFloat(withholding_tax) || 0;
+    const amount = parseFloat(total_amount);
+    const net = amount - tax;
+    const invoiceNumber = `INV-${year}${String(month).padStart(2, '0')}-${creator_id}-${Math.floor(Math.random() * 1000)}`;
+
+    const { rows } = await pool.query(`
+      INSERT INTO invoices (
+        creator_id, month, year, total_amount, withholding_tax, net_amount, invoice_number, status
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, 'UNPAID')
+      RETURNING *
+    `, [creator_id, month, year, amount, tax, net, invoiceNumber]);
+    
+    res.json(rows[0]);
+  } catch (err) {
+    console.error('Error creating invoice:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.post('/invoices/auto', async (req, res) => {
+  const { month, year } = req.body;
+  if (!month || !year) return res.status(400).json({ error: 'Month and year required' });
+  
+  try {
+    // 1. Get all earnings for that month/year grouped by creator
+    // 2. Generate an invoice for each creator with sum(amount) and sum(withholding_tax)
+    
+    const { rows: creatorEarnings } = await pool.query(`
+      SELECT 
+        creator_id, 
+        SUM(amount) as total_amount, 
+        SUM(withholding_tax) as total_tax
+      FROM earnings
+      WHERE EXTRACT(MONTH FROM earning_date) = $1 AND EXTRACT(YEAR FROM earning_date) = $2
+      GROUP BY creator_id
+    `, [month, year]);
+    
+    let created = 0;
+    let skipped = 0;
+    
+    for (const record of creatorEarnings) {
+      // Check if invoice already exists for this creator, month, year
+      const checkRes = await pool.query(
+        "SELECT id FROM invoices WHERE creator_id = $1 AND month = $2 AND year = $3",
+        [record.creator_id, month, year]
+      );
+      
+      if (checkRes.rows.length > 0) {
+        skipped++;
+        continue;
+      }
+      
+      const invoiceNumber = `INV-${year}${String(month).padStart(2, '0')}-${record.creator_id}-${Math.floor(Math.random() * 1000)}`;
+      const totalAmount = parseFloat(record.total_amount);
+      const totalTax = parseFloat(record.total_tax) || 0;
+      const netAmount = totalAmount - totalTax;
+      
+      await pool.query(`
+        INSERT INTO invoices (
+          creator_id, month, year, total_amount, withholding_tax, net_amount, invoice_number, status
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, 'UNPAID')
+      `, [record.creator_id, month, year, totalAmount, totalTax, netAmount, invoiceNumber]);
+      
+      created++;
+    }
+    
+    res.json({ success: true, created, skipped });
+  } catch (err) {
+    console.error('Error auto-generating invoices:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.put('/invoices/:id/status', async (req, res) => {
+  try {
+    const { status } = req.body;
+    await pool.query("UPDATE invoices SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2", [status, req.params.id]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.delete('/invoices/:id', async (req, res) => {
+  try {
+    await pool.query("DELETE FROM invoices WHERE id = $1", [req.params.id]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 export default router;

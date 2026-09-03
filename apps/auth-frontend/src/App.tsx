@@ -9,6 +9,7 @@ import AdminMonetization from './pages/admin/AdminMonetization';
 import AdminSupport from './pages/admin/AdminSupport';
 import AdminCreators from './pages/admin/AdminCreators';
 import AdminLogin from './pages/admin/AdminLogin';
+import AdminInvoices from './pages/admin/AdminInvoices';
 import CreatorFinances from './pages/CreatorFinances';
 import CreatorProfile from './pages/CreatorProfile';
 import CreatorSupport from './pages/CreatorSupport';
@@ -55,7 +56,7 @@ function App() {
           <Route path="/admin/monetization" element={<AdminMonetization />} />
           <Route path="/admin/payments" element={<AdminPayments />} />
           <Route path="/admin/loans" element={<AdminLoans />} />
-          <Route path="/admin/invoices" element={<div className="text-white">Admin Invoices (Coming Soon)</div>} />
+          <Route path="/admin/invoices" element={<AdminInvoices />} />
           <Route path="/admin/notifications" element={<Notifications />} />
         </Route>
       </Routes>
