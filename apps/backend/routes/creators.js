@@ -432,4 +432,35 @@ router.post('/notifications/read', async (req, res) => {
   }
 });
 
+router.get('/leaderboard', async (req, res) => {
+  try {
+    const currentMonth = new Date().getMonth() + 1;
+    const currentYear = new Date().getFullYear();
+
+    const { rows } = await pool.query(`
+      SELECT 
+        e.creator_id as account_id,
+        COALESCE(cp.page_name, u.name) as page_name,
+        SUM(e.amount) as total_earnings
+      FROM earnings e
+      LEFT JOIN creator_profiles cp ON e.creator_id = cp.user_id
+      LEFT JOIN auth_users u ON e.creator_id = u.id
+      WHERE EXTRACT(MONTH FROM e.earning_date) = $1 
+        AND EXTRACT(YEAR FROM e.earning_date) = $2
+      GROUP BY e.creator_id, cp.page_name, u.name
+      ORDER BY total_earnings DESC
+      LIMIT 10
+    `, [currentMonth, currentYear]);
+
+    res.json(rows.map(row => ({
+      account_id: row.account_id,
+      page_name: row.page_name,
+      total_earnings: parseFloat(row.total_earnings || 0)
+    })));
+  } catch (err) {
+    console.error('Leaderboard error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 export default router;

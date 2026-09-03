@@ -21,6 +21,7 @@ import Notifications from './pages/Notifications';
 import Signup from './pages/Signup';
 import ForgotPassword from './pages/ForgotPassword';
 import Settings from './pages/Settings';
+import Leaderboard from './pages/Leaderboard';
 
 function App() {
   return (
@@ -44,6 +45,7 @@ function App() {
           <Route path="/invoices" element={<CreatorInvoices />} />
           <Route path="/monetization" element={<CreatorMonetization />} />
           <Route path="/notifications" element={<Notifications />} />
+          <Route path="/leaderboard" element={<Leaderboard />} />
           
           {/* Redirect old earnings path to new finances page */}
           <Route path="/earnings" element={<Navigate to="/finances" replace />} />

@@ -10,7 +10,8 @@ import {
   Settings,
   Users,
   DollarSign,
-  MessageCircle
+  MessageCircle,
+  Trophy
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -20,6 +21,7 @@ interface SidebarProps {
 export default function Sidebar({ role = 'CREATOR' }: SidebarProps) {
   const creatorLinks = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+    { name: 'Leaderboard', path: '/leaderboard', icon: Trophy },
     { name: 'Support & Manager', path: '/support', icon: MessageCircle },
     { name: 'Profile', path: '/profile', icon: Users },
     { name: 'Finances', path: '/finances', icon: DollarSign },
