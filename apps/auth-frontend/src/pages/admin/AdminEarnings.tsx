@@ -12,6 +12,10 @@ export default function AdminEarnings() {
   const [sheetUrl, setSheetUrl] = useState('');
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<any>(null);
+  
+  // Date Override State
+  const [importMonth, setImportMonth] = useState(new Date().getMonth() + 1);
+  const [importYear, setImportYear] = useState(new Date().getFullYear());
 
   // AI Analysis State
   const [analysisResult, setAnalysisResult] = useState<{
@@ -128,7 +132,8 @@ export default function AdminEarnings() {
       if (decision && decision !== 'SKIP') {
         finalRecords.push({
           ...rec,
-          creator_id: decision
+          creator_id: decision,
+          earning_date: `${importYear}-${importMonth.toString().padStart(2, '0')}-01T12:00:00Z`
         });
       }
     }
@@ -239,6 +244,36 @@ export default function AdminEarnings() {
       <div className="bg-black/40 backdrop-blur-md border border-border rounded-2xl p-6">
         <h2 className="text-lg font-semibold text-white mb-4">Bulk Import Earnings</h2>
         
+        <div className="mb-6 flex flex-col md:flex-row gap-4 items-end bg-black/20 p-4 rounded-xl border border-white/5">
+          <div className="w-full md:w-1/3">
+            <label className="block text-sm font-medium text-gray-300 mb-1">Target Month</label>
+            <select 
+              value={importMonth}
+              onChange={e => setImportMonth(parseInt(e.target.value))}
+              className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-primary"
+            >
+              {['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].map((m, i) => (
+                <option key={i + 1} value={i + 1}>{m}</option>
+              ))}
+            </select>
+          </div>
+          <div className="w-full md:w-1/3">
+            <label className="block text-sm font-medium text-gray-300 mb-1">Target Year</label>
+            <select 
+              value={importYear}
+              onChange={e => setImportYear(parseInt(e.target.value))}
+              className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-primary"
+            >
+              {[new Date().getFullYear() - 1, new Date().getFullYear(), new Date().getFullYear() + 1].map(y => (
+                <option key={y} value={y}>{y}</option>
+              ))}
+            </select>
+          </div>
+          <div className="w-full md:w-1/3 pb-2">
+            <p className="text-xs text-gray-400 italic">All imported records will be forced to this exact month and year, ignoring the dates in the spreadsheet.</p>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* CSV File Upload */}
           <div className="border-2 border-dashed border-border rounded-xl p-6 flex flex-col items-center justify-center text-center">
