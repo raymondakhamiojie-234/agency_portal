@@ -85,6 +85,7 @@ async function analyzeEarningsRecords(records) {
   for (let i = 0; i < records.length; i++) {
     const record = records[i];
     // Determine fields whether record is object or array
+    let creator_id_input = record.creator_id || record.id || record.creator;
     let page_name = record.page_name || record.email || record[0];
     let amount = record.amount || record[1] || 0;
     let withholding_tax = record.withholding_tax || record[2] || 0;
@@ -92,18 +93,25 @@ async function analyzeEarningsRecords(records) {
     let platform = record.platform || record[4] || 'Facebook';
     let status = record.status || record.payout_status || record[5] || 'UNPAID';
 
-    if (page_name === 'page_name' || page_name === 'email') continue; // Skip header row if parsed as array
+    if (page_name === 'page_name' || page_name === 'email' || creator_id_input === 'creator_id' || creator_id_input === 'id') continue; // Skip header row if parsed as array
 
     const searchString = String(page_name || '').toLowerCase().trim();
-    if (!searchString) continue;
+    if (!searchString && !creator_id_input) continue;
 
     // 1. Try exact match
-    let exactMatch = creators.find(c => 
-      (c.email && c.email.toLowerCase() === searchString) ||
-      (c.page_name && c.page_name.toLowerCase() === searchString) ||
-      (c.brand_name && c.brand_name.toLowerCase() === searchString) ||
-      (c.name && c.name.toLowerCase() === searchString)
-    );
+    let exactMatch = null;
+    if (creator_id_input) {
+      exactMatch = creators.find(c => c.id == creator_id_input);
+    }
+
+    if (!exactMatch && searchString) {
+      exactMatch = creators.find(c => 
+        (c.email && c.email.toLowerCase() === searchString) ||
+        (c.page_name && c.page_name.toLowerCase() === searchString) ||
+        (c.brand_name && c.brand_name.toLowerCase() === searchString) ||
+        (c.name && c.name.toLowerCase() === searchString)
+      );
+    }
 
     const parsedRecord = {
       original_id: i,
