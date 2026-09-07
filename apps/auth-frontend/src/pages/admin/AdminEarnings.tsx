@@ -14,7 +14,7 @@ export default function AdminEarnings() {
   const [importResult, setImportResult] = useState<any>(null);
   
   // Date Override State
-  const [importMonth, setImportMonth] = useState(new Date().getMonth() + 1);
+  const [importMonth, setImportMonth] = useState<number>(0);
   const [importYear, setImportYear] = useState(new Date().getFullYear());
 
   // AI Analysis State
@@ -133,7 +133,7 @@ export default function AdminEarnings() {
         finalRecords.push({
           ...rec,
           creator_id: decision,
-          earning_date: `${importYear}-${importMonth.toString().padStart(2, '0')}-01T12:00:00Z`
+          earning_date: importMonth > 0 ? `${importYear}-${importMonth.toString().padStart(2, '0')}-01T12:00:00Z` : rec.earning_date
         });
       }
     }
@@ -252,6 +252,7 @@ export default function AdminEarnings() {
               onChange={e => setImportMonth(parseInt(e.target.value))}
               className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-primary"
             >
+              <option value={0}>Use dates from spreadsheet</option>
               {['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].map((m, i) => (
                 <option key={i + 1} value={i + 1}>{m}</option>
               ))}
@@ -260,9 +261,10 @@ export default function AdminEarnings() {
           <div className="w-full md:w-1/3">
             <label className="block text-sm font-medium text-gray-300 mb-1">Target Year</label>
             <select 
+              disabled={importMonth === 0}
               value={importYear}
               onChange={e => setImportYear(parseInt(e.target.value))}
-              className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-primary"
+              className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-primary disabled:opacity-50"
             >
               {[new Date().getFullYear() - 1, new Date().getFullYear(), new Date().getFullYear() + 1].map(y => (
                 <option key={y} value={y}>{y}</option>
@@ -270,7 +272,11 @@ export default function AdminEarnings() {
             </select>
           </div>
           <div className="w-full md:w-1/3 pb-2">
-            <p className="text-xs text-gray-400 italic">All imported records will be forced to this exact month and year, ignoring the dates in the spreadsheet.</p>
+            <p className="text-xs text-gray-400 italic">
+              {importMonth === 0 
+                ? "Dates will be read directly from your spreadsheet."
+                : "All imported records will be forced to this exact month and year."}
+            </p>
           </div>
         </div>
 
