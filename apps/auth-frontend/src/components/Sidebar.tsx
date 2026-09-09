@@ -11,14 +11,17 @@ import {
   Users,
   DollarSign,
   MessageCircle,
-  Trophy
+  Trophy,
+  X
 } from 'lucide-react';
 
 interface SidebarProps {
   role?: string;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
-export default function Sidebar({ role = 'CREATOR' }: SidebarProps) {
+export default function Sidebar({ role = 'CREATOR', isOpen = false, onClose }: SidebarProps) {
   const creatorLinks = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { name: 'Leaderboard', path: '/leaderboard', icon: Trophy },
@@ -46,16 +49,38 @@ export default function Sidebar({ role = 'CREATOR' }: SidebarProps) {
   const links = role === 'ADMIN' ? adminLinks : creatorLinks;
 
   return (
-    <aside className="w-64 h-screen bg-black/40 backdrop-blur-md border-r border-border hidden md:flex flex-col sticky top-0">
-      <div className="p-6">
-        <div className="flex items-center space-x-3 mb-2">
-          <img src="/favicon.jpg" alt="Logo" className="w-8 h-8 rounded-lg shadow-md shadow-primary/20" />
-          <h2 className="text-xl font-bold text-white tracking-tight">Falcus Media</h2>
+    <>
+      {/* Mobile Backdrop */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden"
+          onClick={onClose}
+        />
+      )}
+
+      <aside 
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#0a0a0b] md:bg-black/40 md:backdrop-blur-md border-r border-border flex flex-col transition-transform duration-300 ease-in-out md:static md:translate-x-0 ${
+          isOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        <div className="p-6 flex items-center justify-between">
+          <div>
+            <div className="flex items-center space-x-3 mb-2">
+              <img src="/favicon.jpg" alt="Logo" className="w-8 h-8 rounded-lg shadow-md shadow-primary/20" />
+              <h2 className="text-xl font-bold text-white tracking-tight">Falcus Media</h2>
+            </div>
+            <p className="text-xs text-primary font-medium mt-1 uppercase tracking-wider">
+              {role} PORTAL
+            </p>
+          </div>
+          {/* Mobile Close Button */}
+          <button 
+            onClick={onClose}
+            className="md:hidden text-gray-400 hover:text-white p-1"
+          >
+            <X className="h-6 w-6" />
+          </button>
         </div>
-        <p className="text-xs text-primary font-medium mt-1 uppercase tracking-wider">
-          {role} PORTAL
-        </p>
-      </div>
 
       <nav className="flex-1 px-4 space-y-1 overflow-y-auto pb-4">
         {links.map((link) => {
@@ -65,6 +90,9 @@ export default function Sidebar({ role = 'CREATOR' }: SidebarProps) {
               key={link.name}
               to={link.path}
               end={link.path === '/dashboard'}
+              onClick={() => {
+                if (onClose) onClose();
+              }}
               className={({ isActive }) =>
                 `flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${
                   isActive
@@ -80,5 +108,6 @@ export default function Sidebar({ role = 'CREATOR' }: SidebarProps) {
         })}
       </nav>
     </aside>
+    </>
   );
 }

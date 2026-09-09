@@ -8,6 +8,7 @@ import Topbar from './Topbar';
 export default function Layout() {
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -49,10 +50,17 @@ export default function Layout() {
       {/* Global Background Glow */}
       <div className="fixed top-0 left-1/4 w-[50vw] h-[50vw] bg-primary/5 rounded-full blur-[150px] mix-blend-screen pointer-events-none" />
       
-      <Sidebar role={role} />
+      <Sidebar 
+        role={role} 
+        isOpen={isSidebarOpen} 
+        onClose={() => setIsSidebarOpen(false)} 
+      />
       
       <div className="flex-1 flex flex-col h-screen overflow-hidden relative z-10">
-        <Topbar user={session?.user} />
+        <Topbar 
+          user={session?.user} 
+          onMenuClick={() => setIsSidebarOpen(true)}
+        />
         
         <main className="flex-1 overflow-y-auto p-6 md:p-8">
           <Outlet context={{ user: session?.user, role }} />

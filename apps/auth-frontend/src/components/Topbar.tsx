@@ -5,9 +5,10 @@ import { useNavigate } from 'react-router-dom';
 
 interface TopbarProps {
   user: any;
+  onMenuClick?: () => void;
 }
 
-export default function Topbar({ user }: TopbarProps) {
+export default function Topbar({ user, onMenuClick }: TopbarProps) {
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -29,7 +30,10 @@ export default function Topbar({ user }: TopbarProps) {
   return (
     <header className="h-20 bg-black/20 backdrop-blur-md border-b border-border flex items-center justify-between px-6 sticky top-0 z-10">
       <div className="flex items-center flex-1">
-        <button className="md:hidden text-gray-400 hover:text-white mr-4">
+        <button 
+          onClick={onMenuClick}
+          className="md:hidden text-gray-400 hover:text-white mr-4 transition-colors"
+        >
           <Menu className="h-6 w-6" />
         </button>
         
