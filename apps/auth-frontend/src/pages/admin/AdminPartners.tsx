@@ -8,6 +8,7 @@ export default function AdminPartners() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingPartnerId, setEditingPartnerId] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -40,12 +41,17 @@ export default function AdminPartners() {
     e.preventDefault();
     setSubmitting(true);
     try {
-      await axios.post('/api/admin/partners', formData, { withCredentials: true });
+      if (editingPartnerId) {
+        await axios.put(`/api/admin/partners/${editingPartnerId}`, formData, { withCredentials: true });
+      } else {
+        await axios.post('/api/admin/partners', formData, { withCredentials: true });
+      }
       setIsModalOpen(false);
+      setEditingPartnerId(null);
       setFormData({ name: '', email: '', password: '', percentage: 10 });
       fetchPartners();
     } catch (err: any) {
-      alert(err.response?.data?.error || 'Failed to create partner');
+      alert(err.response?.data?.error || `Failed to ${editingPartnerId ? 'update' : 'create'} partner`);
     } finally {
       setSubmitting(false);
     }
@@ -79,7 +85,11 @@ export default function AdminPartners() {
             <Download className="h-4 w-4 mr-2" /> Export
           </button>
           <button 
-            onClick={() => setIsModalOpen(true)}
+            onClick={() => {
+              setEditingPartnerId(null);
+              setFormData({ name: '', email: '', password: '', percentage: 10 });
+              setIsModalOpen(true);
+            }}
             className="bg-primary hover:bg-primary/90 text-white px-5 py-2.5 rounded-xl font-medium transition-colors flex items-center shadow-lg shadow-primary/20"
           >
             <Plus className="h-4 w-4 mr-2" /> New Partner
@@ -125,7 +135,19 @@ export default function AdminPartners() {
                         >
                           Copy Link
                         </button>
-                        <button className="text-gray-400 hover:text-white transition-colors">
+                        <button 
+                          onClick={() => {
+                            setEditingPartnerId(p.id);
+                            setFormData({
+                              name: p.name,
+                              email: p.email,
+                              password: '',
+                              percentage: p.partner_percentage || 10
+                            });
+                            setIsModalOpen(true);
+                          }}
+                          className="text-gray-400 hover:text-white transition-colors"
+                        >
                           Edit
                         </button>
                       </div>
@@ -147,7 +169,9 @@ export default function AdminPartners() {
             >
               <X className="h-5 w-5" />
             </button>
-            <h2 className="text-xl font-bold text-white mb-6">Create New Partner</h2>
+            <h2 className="text-xl font-bold text-white mb-6">
+              {editingPartnerId ? 'Edit Partner' : 'Create New Partner'}
+            </h2>
             
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
@@ -173,10 +197,12 @@ export default function AdminPartners() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-400 mb-1">Temporary Password</label>
+                <label className="block text-sm font-medium text-gray-400 mb-1">
+                  {editingPartnerId ? 'New Password (Optional)' : 'Temporary Password'}
+                </label>
                 <input
                   type="password"
-                  required
+                  required={!editingPartnerId}
                   value={formData.password}
                   onChange={e => setFormData({...formData, password: e.target.value})}
                   className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-primary"
@@ -206,7 +232,7 @@ export default function AdminPartners() {
                   disabled={submitting}
                   className="w-full bg-primary hover:bg-primary/90 text-white rounded-xl py-3 font-medium transition-colors disabled:opacity-50 flex items-center justify-center"
                 >
-                  {submitting ? <Loader2 className="animate-spin h-5 w-5" /> : 'Create Partner Account'}
+                  {submitting ? <Loader2 className="animate-spin h-5 w-5" /> : editingPartnerId ? 'Update Partner Account' : 'Create Partner Account'}
                 </button>
               </div>
             </form>

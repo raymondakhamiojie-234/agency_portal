@@ -823,4 +823,34 @@ router.delete('/invoices/:id', async (req, res) => {
   }
 });
 
+router.put('/partners/:id', async (req, res) => {
+  try {
+    const { name, email, password, percentage } = req.body;
+    const partnerId = req.params.id;
+
+    // Check if email is used by another user
+    const checkRes = await pool.query('SELECT id FROM auth_users WHERE email = $1 AND id != $2', [email, partnerId]);
+    if (checkRes.rows.length > 0) return res.status(400).json({ error: 'Email already in use by another account' });
+
+    if (password) {
+      const argon2 = await import('argon2');
+      const hashedPassword = await argon2.hash(password);
+      await pool.query(
+        'UPDATE auth_users SET name = $1, email = $2, partner_percentage = $3 WHERE id = $4 AND is_partner = true',
+        [name, email, percentage, partnerId]
+      );
+    } else {
+      await pool.query(
+        'UPDATE auth_users SET name = $1, email = $2, partner_percentage = $3 WHERE id = $4 AND is_partner = true',
+        [name, email, percentage, partnerId]
+      );
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error updating partner:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 export default router;
