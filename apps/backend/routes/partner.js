@@ -29,7 +29,7 @@ router.get('/dashboard', async (req, res) => {
     // Get referred creators
     const creatorsRes = await pool.query(`
       SELECT u.id, u.name, u.email,
-             COALESCE(SUM(e.net_earnings), 0) as total_net_earnings
+             COALESCE(SUM(e.amount), 0) as total_net_earnings
       FROM auth_users u
       LEFT JOIN earnings e ON u.id = e.user_id
       WHERE u.partner_id = $1
