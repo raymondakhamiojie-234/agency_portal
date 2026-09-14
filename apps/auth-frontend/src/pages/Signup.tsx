@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Mail, Lock, User, Loader2, ArrowRight } from 'lucide-react';
 import axios from 'axios';
 
@@ -10,6 +10,8 @@ export default function Signup() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const partnerId = searchParams.get('ref');
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,7 +21,7 @@ export default function Signup() {
     try {
       await axios.post(
         '/api/auth/callback/credentials-signup',
-        { name, email, password },
+        { name, email, password, partner_id: partnerId },
         { withCredentials: true }
       );
 

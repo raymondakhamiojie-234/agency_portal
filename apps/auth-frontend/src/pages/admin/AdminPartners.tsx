@@ -115,9 +115,20 @@ export default function AdminPartners() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <button className="text-gray-400 hover:text-white transition-colors">
-                        Edit
-                      </button>
+                      <div className="flex items-center justify-end gap-3">
+                        <button 
+                          onClick={() => {
+                            navigator.clipboard.writeText(`${window.location.origin}/signup?ref=${p.id}`);
+                            alert('Invite link copied!');
+                          }}
+                          className="text-xs bg-primary/10 text-primary hover:bg-primary/20 px-3 py-1.5 rounded-lg transition-colors font-medium"
+                        >
+                          Copy Link
+                        </button>
+                        <button className="text-gray-400 hover:text-white transition-colors">
+                          Edit
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))

@@ -46,12 +46,13 @@ router.get('/dashboard', async (req, res) => {
     // Partner earnings = (Agency Net Earnings * partner_percentage) / 100
     const partner_earnings = (total_agency_net * percentage) / 100;
 
-    res.json({
-      stats: {
-        total_creators: referred_creators.length,
-        partner_earnings: partner_earnings,
-        partner_percentage: percentage
-      },
+      res.json({
+        stats: {
+          total_creators: referred_creators.length,
+          partner_earnings: partner_earnings,
+          partner_percentage: percentage,
+          partner_id: partnerId
+        },
       referred_creators
     });
 

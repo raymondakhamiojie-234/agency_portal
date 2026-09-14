@@ -7,7 +7,7 @@ import { pool } from '../server.js';
 const router = express.Router();
 
 router.post('/callback/credentials-signup', async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, partner_id } = req.body;
   if (!email || !password || !name) {
     return res.status(400).json({ message: 'Name, email, and password required' });
   }
@@ -20,8 +20,8 @@ router.post('/callback/credentials-signup', async (req, res) => {
 
     const hashedPassword = await argon2.hash(password);
     const result = await pool.query(
-      'INSERT INTO auth_users (name, email, is_admin) VALUES ($1, $2, false) RETURNING id, name, email, is_admin',
-      [name, email]
+      'INSERT INTO auth_users (name, email, is_admin, partner_id) VALUES ($1, $2, false, $3) RETURNING id, name, email, is_admin, is_partner',
+      [name, email, partner_id || null]
     );
 
     const user = result.rows[0];

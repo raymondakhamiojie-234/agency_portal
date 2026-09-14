@@ -44,9 +44,28 @@ export default function PartnerDashboard() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-white">Partner Overview</h1>
-        <p className="text-gray-400 mt-1">Track your referred creators and revenue.</p>
+      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-white">Partner Overview</h1>
+          <p className="text-gray-400 mt-1">Track your referred creators and revenue.</p>
+        </div>
+        {stats?.partner_id && (
+          <div className="bg-white/5 border border-white/10 rounded-xl p-3 flex items-center gap-3">
+            <span className="text-sm text-gray-400">Your Invite Link:</span>
+            <code className="text-primary text-sm bg-black/40 px-2 py-1 rounded select-all">
+              {window.location.origin}/signup?ref={stats.partner_id}
+            </code>
+            <button 
+              onClick={() => {
+                navigator.clipboard.writeText(`${window.location.origin}/signup?ref=${stats.partner_id}`);
+                alert('Invite link copied!');
+              }}
+              className="text-xs bg-primary/20 text-primary hover:bg-primary/30 px-3 py-1.5 rounded-lg transition-colors font-medium"
+            >
+              Copy
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
