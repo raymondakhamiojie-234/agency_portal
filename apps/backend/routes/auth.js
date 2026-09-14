@@ -25,7 +25,7 @@ router.post('/callback/credentials-signup', async (req, res) => {
     );
 
     const user = result.rows[0];
-    const role = user.is_admin ? 'ADMIN' : 'CREATOR';
+    const role = user.is_admin ? 'ADMIN' : user.is_partner ? 'PARTNER' : 'CREATOR';
     
     await pool.query(
       'INSERT INTO auth_accounts ("userId", type, provider, "providerAccountId", password) VALUES ($1, $2, $3, $4, $5)',
@@ -66,7 +66,7 @@ router.post('/callback/credentials-signin', async (req, res) => {
     }
 
     const user = rows[0];
-    const role = user.is_admin ? 'ADMIN' : 'CREATOR';
+    const role = user.is_admin ? 'ADMIN' : user.is_partner ? 'PARTNER' : 'CREATOR';
     
     const accountRes = await pool.query('SELECT password FROM auth_accounts WHERE "userId" = $1', [user.id]);
     if (accountRes.rows.length === 0) {

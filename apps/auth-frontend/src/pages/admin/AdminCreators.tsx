@@ -5,6 +5,7 @@ import { exportToCSV } from '../../utils/export';
 
 export default function AdminCreators() {
   const [creators, setCreators] = useState<any[]>([]);
+  const [partners, setPartners] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filterPlatform, setFilterPlatform] = useState('ALL');
@@ -12,6 +13,7 @@ export default function AdminCreators() {
 
   useEffect(() => {
     fetchCreators();
+    fetchPartners();
   }, []);
 
   const fetchCreators = async () => {
@@ -22,6 +24,25 @@ export default function AdminCreators() {
       console.error('Failed to fetch creators', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchPartners = async () => {
+    try {
+      const res = await axios.get('/api/admin/partners', { withCredentials: true });
+      setPartners(res.data);
+    } catch (err) {
+      console.error('Failed to fetch partners', err);
+    }
+  };
+
+  const handleAssignPartner = async (creatorId: string, partnerId: string) => {
+    try {
+      await axios.put(`/api/admin/creators/${creatorId}/partner`, { partner_id: partnerId }, { withCredentials: true });
+      fetchCreators(); // refresh to get new partner_id
+      setSelectedCreator({...selectedCreator, partner_id: partnerId});
+    } catch (err) {
+      console.error('Failed to assign partner', err);
     }
   };
 
@@ -294,6 +315,19 @@ export default function AdminCreators() {
                         ? new Date(selectedCreator.contract_signed_at).toLocaleDateString() 
                         : 'N/A'}
                     </span>
+                  </div>
+                  <div className="flex flex-col text-sm mt-4">
+                    <span className="text-gray-500 mb-1">Assigned Partner:</span>
+                    <select
+                      value={selectedCreator.partner_id || ''}
+                      onChange={(e) => handleAssignPartner(selectedCreator.id, e.target.value)}
+                      className="bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-primary text-sm max-w-[200px]"
+                    >
+                      <option value="">No Partner</option>
+                      {partners.map(p => (
+                        <option key={p.id} value={p.id}>{p.name} ({p.partner_percentage}%)</option>
+                      ))}
+                    </select>
                   </div>
                 </div>
 

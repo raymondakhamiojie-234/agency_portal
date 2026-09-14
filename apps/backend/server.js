@@ -8,6 +8,7 @@ import authRoutes from './routes/auth.js';
 import creatorRoutes from './routes/creators.js';
 import managerRoutes from './routes/manager.js';
 import adminRoutes from './routes/admin.js';
+import partnerRoutes from './routes/partner.js';
 
 const { Pool } = pg;
 const app = express();
@@ -26,7 +27,20 @@ pool.on('error', (err, client) => {
 });
 
 pool.connect()
-  .then(() => console.log('Connected to PostgreSQL'))
+  .then(async () => {
+    console.log('Connected to PostgreSQL');
+    try {
+      await pool.query(`
+        ALTER TABLE auth_users 
+        ADD COLUMN IF NOT EXISTS is_partner BOOLEAN DEFAULT false,
+        ADD COLUMN IF NOT EXISTS partner_id UUID REFERENCES auth_users(id),
+        ADD COLUMN IF NOT EXISTS partner_percentage DECIMAL(5,2) DEFAULT 0.00;
+      `);
+      console.log('DB migrations successful');
+    } catch (e) {
+      console.error('DB migrations failed', e);
+    }
+  })
   .catch(err => console.error('PostgreSQL connection error', err));
 
 let frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
@@ -45,6 +59,7 @@ app.use(cookieParser());
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/manager', managerRoutes);
+app.use('/api/partner', partnerRoutes);
 app.use('/api', creatorRoutes);
 app.use('/api/admin', adminRoutes);
 

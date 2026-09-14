@@ -8,6 +8,7 @@ import AdminLoans from './pages/admin/AdminLoans';
 import AdminMonetization from './pages/admin/AdminMonetization';
 import AdminSupport from './pages/admin/AdminSupport';
 import AdminCreators from './pages/admin/AdminCreators';
+import AdminPartners from './pages/admin/AdminPartners';
 import AdminLogin from './pages/admin/AdminLogin';
 import AdminInvoices from './pages/admin/AdminInvoices';
 import CreatorFinances from './pages/CreatorFinances';
@@ -22,6 +23,7 @@ import Signup from './pages/Signup';
 import ForgotPassword from './pages/ForgotPassword';
 import Settings from './pages/Settings';
 import Leaderboard from './pages/Leaderboard';
+import PartnerDashboard from './pages/partner/PartnerDashboard';
 
 function App() {
   return (
@@ -51,15 +53,18 @@ function App() {
           <Route path="/earnings" element={<Navigate to="/finances" replace />} />
           <Route path="/settings" element={<Settings />} />
             
-          {/* Admin Routes */}
           <Route path="/admin/support" element={<AdminSupport />} />
           <Route path="/admin/creators" element={<AdminCreators />} />
+          <Route path="/admin/partners" element={<AdminPartners />} />
           <Route path="/admin/earnings" element={<AdminEarnings />} />
           <Route path="/admin/monetization" element={<AdminMonetization />} />
           <Route path="/admin/payments" element={<AdminPayments />} />
           <Route path="/admin/loans" element={<AdminLoans />} />
           <Route path="/admin/invoices" element={<AdminInvoices />} />
           <Route path="/admin/notifications" element={<Notifications />} />
+          
+          {/* Partner Routes */}
+          <Route path="/partner/dashboard" element={<PartnerDashboard />} />
         </Route>
       </Routes>
     </BrowserRouter>

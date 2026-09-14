@@ -37,6 +37,7 @@ export default function Sidebar({ role = 'CREATOR', isOpen = false, onClose }: S
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { name: 'Support & Manager', path: '/admin/support', icon: MessageCircle },
     { name: 'Creators', path: '/admin/creators', icon: Users },
+    { name: 'Partners', path: '/admin/partners', icon: Users },
     { name: 'Earnings', path: '/admin/earnings', icon: Wallet },
     { name: 'Monetization', path: '/admin/monetization', icon: TrendingUp },
     { name: 'Payments', path: '/admin/payments', icon: CreditCard },
@@ -46,7 +47,12 @@ export default function Sidebar({ role = 'CREATOR', isOpen = false, onClose }: S
     { name: 'Settings', path: '/settings', icon: Settings },
   ];
 
-  const links = role === 'ADMIN' ? adminLinks : creatorLinks;
+  const partnerLinks = [
+    { name: 'Dashboard', path: '/partner/dashboard', icon: LayoutDashboard },
+    { name: 'Settings', path: '/settings', icon: Settings },
+  ];
+
+  const links = role === 'ADMIN' ? adminLinks : role === 'PARTNER' ? partnerLinks : creatorLinks;
 
   return (
     <>

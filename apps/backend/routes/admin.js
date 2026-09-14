@@ -8,7 +8,51 @@ import { sendNotificationEmail } from '../utils/email.js';
 const router = express.Router();
 
 router.use(requireAuth, requireAdmin);
+router.use(requireAuth, requireAdmin);
 
+// Partners
+router.get('/partners', async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT id, name, email, partner_percentage FROM auth_users WHERE is_partner = true ORDER BY created_at DESC');
+    res.json(rows);
+  } catch (err) {
+    console.error('Error fetching partners:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.post('/partners', async (req, res) => {
+  try {
+    const { name, email, password, percentage } = req.body;
+    
+    // Check if email exists
+    const checkRes = await pool.query('SELECT id FROM auth_users WHERE email = $1', [email]);
+    if (checkRes.rows.length > 0) return res.status(400).json({ error: 'Email already in use' });
+
+    // Hash password
+    const bcrypt = await import('bcrypt');
+    const argon2 = await import('argon2');
+    const hashedPassword = await argon2.hash(password);
+
+    // Create user
+    const insertUser = await pool.query(
+      'INSERT INTO auth_users (name, email, is_admin, is_partner, partner_percentage) VALUES ($1, $2, false, true, $3) RETURNING id',
+      [name, email, percentage]
+    );
+    const userId = insertUser.rows[0].id;
+
+    // Create account
+    await pool.query(
+      'INSERT INTO auth_accounts ("userId", type, provider, "providerAccountId", password) VALUES ($1, $2, $3, $4, $5)',
+      [userId, 'credentials', 'credentials', userId.toString(), hashedPassword]
+    );
+
+    res.json({ success: true, id: userId });
+  } catch (err) {
+    console.error('Error creating partner:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
 // Earnings
 router.get('/earnings', async (req, res) => {
   try {
@@ -344,7 +388,7 @@ router.get('/support/creators', async (req, res) => {
 router.get('/creators/details', async (req, res) => {
   try {
     const { rows } = await pool.query(`
-      SELECT u.id, u.name, u.email, u.created_at as joined_date,
+      SELECT u.id, u.name, u.email, u.created_at as joined_date, u.partner_id,
              cp.full_name, cp.brand_name, cp.phone_number, cp.primary_platform,
              cp.country, cp.page_name, cp.follower_count, cp.page_urls,
              cp.home_address, cp.bank_name, cp.account_name, cp.bank_account_number,
@@ -365,6 +409,18 @@ router.get('/creators/details', async (req, res) => {
     res.json(rows);
   } catch (err) {
     console.error('Error fetching creator details:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.put('/creators/:id/partner', async (req, res) => {
+  try {
+    const { partner_id } = req.body;
+    const val = partner_id === '' || partner_id === null ? null : partner_id;
+    await pool.query('UPDATE auth_users SET partner_id = $1 WHERE id = $2', [val, req.params.id]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error assigning partner:', err);
     res.status(500).json({ error: 'Server error' });
   }
 });
