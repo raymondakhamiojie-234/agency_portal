@@ -3,6 +3,7 @@ import axios from 'axios';
 import Papa from 'papaparse';
 import { pool } from '../server.js';
 import { requireAuth, requireAdmin } from './auth.js';
+import { sendNotificationEmail } from '../utils/email.js';
 
 const router = express.Router();
 
@@ -415,6 +416,24 @@ router.post('/support/tickets/:id/messages', async (req, res) => {
       [req.params.id, req.user.id, message]
     );
     await pool.query("UPDATE support_tickets SET updated_at = NOW() WHERE id = $1", [req.params.id]);
+
+    // Send email to creator
+    const ticketRes = await pool.query(`
+      SELECT u.email, u.name, st.subject 
+      FROM support_tickets st 
+      JOIN auth_users u ON st.creator_id = u.id 
+      WHERE st.id = $1
+    `, [req.params.id]);
+    
+    if (ticketRes.rows.length > 0) {
+      const creator = ticketRes.rows[0];
+      await sendNotificationEmail(
+        creator.email,
+        `New Message on Ticket: ${creator.subject}`,
+        `<p>Hi ${creator.name},</p><p>Your manager has replied to your support ticket <b>"${creator.subject}"</b>:</p><blockquote>${message}</blockquote><p>Login to your portal to reply.</p>`
+      );
+    }
+
     res.json(rows[0]);
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
@@ -442,6 +461,18 @@ router.post('/support/chat/:creatorId', async (req, res) => {
        VALUES ($1, $2, 'MANAGER', $3) RETURNING *`,
       [req.params.creatorId, req.user.id, message]
     );
+
+    // Send email to creator
+    const creatorRes = await pool.query("SELECT email, name FROM auth_users WHERE id = $1", [req.params.creatorId]);
+    if (creatorRes.rows.length > 0) {
+      const creator = creatorRes.rows[0];
+      await sendNotificationEmail(
+        creator.email,
+        "New Direct Message from your Manager",
+        `<p>Hi ${creator.name},</p><p>Your manager sent you a new message:</p><blockquote>${message}</blockquote><p>Login to your portal to reply.</p>`
+      );
+    }
+
     res.json(rows[0]);
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
@@ -465,6 +496,17 @@ router.post('/support/tasks', async (req, res) => {
       [creator_id, 'New Task Assigned', title]
     );
     
+    // Send email to creator
+    const creatorRes = await pool.query("SELECT email, name FROM auth_users WHERE id = $1", [creator_id]);
+    if (creatorRes.rows.length > 0) {
+      const creator = creatorRes.rows[0];
+      await sendNotificationEmail(
+        creator.email,
+        "New Task Assigned: " + title,
+        `<p>Hi ${creator.name},</p><p>You have been assigned a new task: <b>${title}</b>.</p><p>${description}</p><p>Due Date: ${due_date || 'N/A'}</p><p>Login to your portal for more details.</p>`
+      );
+    }
+
     res.json(rows[0]);
   } catch (err) {
     res.status(500).json({ error: 'Server error' });

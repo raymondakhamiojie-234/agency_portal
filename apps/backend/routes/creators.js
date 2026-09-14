@@ -1,6 +1,7 @@
 import express from 'express';
 import { pool } from '../server.js';
 import { requireAuth } from './auth.js';
+import { sendNotificationEmail } from '../utils/email.js';
 
 const router = express.Router();
 
@@ -53,6 +54,30 @@ router.get('/dashboard/creator', async (req, res) => {
     });
   } catch (err) {
     console.error('Creator Dashboard Error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.get('/dashboard/creator/analytics', async (req, res) => {
+  const userId = req.user.id;
+  try {
+    const { rows } = await pool.query(`
+      SELECT 
+        TO_CHAR(DATE_TRUNC('month', earning_date), 'Mon YYYY') as month,
+        SUM(amount) as earnings
+      FROM earnings 
+      WHERE creator_id = $1 
+      GROUP BY DATE_TRUNC('month', earning_date)
+      ORDER BY DATE_TRUNC('month', earning_date) ASC
+      LIMIT 12
+    `, [userId]);
+
+    res.json(rows.map(row => ({
+      month: row.month,
+      earnings: parseFloat(row.earnings)
+    })));
+  } catch (err) {
+    console.error('Analytics error:', err);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -129,6 +154,18 @@ router.post('/loans/apply', async (req, res) => {
        VALUES ($1, $2, $3, $4, 'PENDING')`,
       [userId, amount, interest, remainingBalance]
     );
+
+    // Email Admin
+    const creatorRes = await pool.query('SELECT name, email FROM auth_users WHERE id = $1', [userId]);
+    if (creatorRes.rows.length > 0) {
+      const creator = creatorRes.rows[0];
+      await sendNotificationEmail(
+        'support@falcusmediaagency.com',
+        `New Loan Request: $${amount} from ${creator.name}`,
+        `<p><b>${creator.name}</b> (${creator.email}) has requested a loan of <b>$${amount}</b>.</p><p>Please log in to the admin portal to review this request.</p>`
+      );
+    }
+
     res.json({ success: true });
   } catch (err) {
     console.error('Loan apply error:', err);

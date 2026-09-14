@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Search, Mail, ExternalLink, TrendingUp, Filter, Users as UsersIcon, X, Globe, Phone, MapPin } from 'lucide-react';
+import { Search, Mail, ExternalLink, TrendingUp, Filter, Users as UsersIcon, X, Globe, Phone, MapPin, Download } from 'lucide-react';
+import { exportToCSV } from '../../utils/export';
 
 export default function AdminCreators() {
   const [creators, setCreators] = useState<any[]>([]);
@@ -86,6 +87,13 @@ export default function AdminCreators() {
               <option value="facebook">Facebook</option>
             </select>
           </div>
+          
+          <button 
+            onClick={() => exportToCSV(filteredCreators, 'creators.csv')}
+            className="flex items-center text-sm font-medium text-gray-300 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 px-4 py-2.5 rounded-xl transition-colors"
+          >
+            <Download className="h-4 w-4 mr-2" /> Export
+          </button>
         </div>
       </div>
 

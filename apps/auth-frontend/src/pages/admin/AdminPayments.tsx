@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { CreditCard, CheckCircle, Clock, Plus, Search } from 'lucide-react';
+import { CreditCard, CheckCircle, Clock, Plus, Search, Download } from 'lucide-react';
+import { exportToCSV } from '../../utils/export';
 
 export default function AdminPayments() {
   const [payments, setPayments] = useState<any[]>([]);
@@ -40,9 +41,17 @@ export default function AdminPayments() {
           <h1 className="text-3xl font-bold tracking-tight text-white">Payment Processing</h1>
           <p className="text-gray-400 mt-1">Manage and disburse creator payments.</p>
         </div>
-        <button className="bg-primary hover:bg-primary/90 text-white px-5 py-2.5 rounded-xl font-medium transition-colors flex items-center shadow-lg shadow-primary/20">
-          <Plus className="h-4 w-4 mr-2" /> New Payment
-        </button>
+        <div className="flex items-center space-x-4">
+          <button 
+            onClick={() => exportToCSV(payments, 'payments.csv')}
+            className="bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white px-5 py-2.5 rounded-xl font-medium transition-colors flex items-center"
+          >
+            <Download className="h-4 w-4 mr-2" /> Export CSV
+          </button>
+          <button className="bg-primary hover:bg-primary/90 text-white px-5 py-2.5 rounded-xl font-medium transition-colors flex items-center shadow-lg shadow-primary/20">
+            <Plus className="h-4 w-4 mr-2" /> New Payment
+          </button>
+        </div>
       </div>
 
       <div className="bg-black/40 backdrop-blur-md border border-border rounded-2xl overflow-hidden">

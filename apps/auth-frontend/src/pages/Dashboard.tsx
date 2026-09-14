@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import axios from 'axios';
-import { Wallet, TrendingUp, CreditCard, Landmark, CheckCircle, Clock } from 'lucide-react';
+import { Wallet, TrendingUp, CreditCard, Landmark } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import StatCard from '../components/StatCard';
 import AdminDashboard from './admin/AdminDashboard';
 
 export default function Dashboard() {
   const { role } = useOutletContext<{ role: string }>();
   const [stats, setStats] = useState<any>(null);
+  const [chartData, setChartData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -22,6 +24,8 @@ export default function Dashboard() {
     try {
       const res = await axios.get('/api/dashboard/creator', { withCredentials: true });
       setStats(res.data);
+      const analyticsRes = await axios.get('/api/dashboard/creator/analytics', { withCredentials: true });
+      setChartData(analyticsRes.data);
     } catch (err) {
       console.error("Failed to load dashboard stats", err);
     } finally {
@@ -81,26 +85,28 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 bg-black/40 backdrop-blur-md border border-border rounded-2xl p-6 h-96 flex flex-col relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-[80px] pointer-events-none" />
-          <h2 className="text-lg font-semibold text-white mb-6">Recent Activity</h2>
+          <h2 className="text-lg font-semibold text-white mb-6">Earnings History</h2>
           
-          <div className="flex-1 overflow-y-auto pr-2 space-y-4">
-            <div className="flex items-start p-4 bg-white/[0.02] border border-border rounded-xl">
-              <CheckCircle className="h-5 w-5 text-green-400 mt-0.5 mr-3 flex-shrink-0" />
-              <div>
-                <p className="text-sm font-medium text-white">Payment Completed</p>
-                <p className="text-xs text-gray-400 mt-1">A payout has been successfully sent to your bank account.</p>
+          <div className="flex-1 w-full min-h-0">
+            {chartData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
+                  <XAxis dataKey="month" stroke="#888" tick={{ fill: '#888', fontSize: 12 }} />
+                  <YAxis stroke="#888" tick={{ fill: '#888', fontSize: 12 }} tickFormatter={(value) => `$${value}`} />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#111', borderColor: '#333', borderRadius: '8px' }}
+                    itemStyle={{ color: '#fff' }}
+                    formatter={(value: any) => [formatCurrency(Number(value) || 0), 'Earnings']}
+                  />
+                  <Bar dataKey="earnings" fill="#6366f1" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full flex items-center justify-center text-gray-500">
+                No earnings data available yet.
               </div>
-              <span className="text-xs text-gray-500 ml-auto whitespace-nowrap">Recently</span>
-            </div>
-            
-            <div className="flex items-start p-4 bg-white/[0.02] border border-border rounded-xl">
-              <Clock className="h-5 w-5 text-yellow-400 mt-0.5 mr-3 flex-shrink-0" />
-              <div>
-                <p className="text-sm font-medium text-white">New Earnings Verified</p>
-                <p className="text-xs text-gray-400 mt-1">Your recent earnings have been verified by Falcus Media.</p>
-              </div>
-              <span className="text-xs text-gray-500 ml-auto whitespace-nowrap">Recently</span>
-            </div>
+            )}
           </div>
         </div>
 

@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { Download } from 'lucide-react';
+import { exportToCSV } from '../../utils/export';
 
 export default function AdminLoans() {
   const [loans, setLoans] = useState<any[]>([]);
@@ -56,8 +58,14 @@ export default function AdminLoans() {
       </div>
 
       <div className="bg-black/40 backdrop-blur-md border border-border rounded-2xl overflow-hidden">
-        <div className="px-6 py-5 border-b border-border">
+        <div className="px-6 py-5 border-b border-border flex justify-between items-center">
           <h2 className="text-lg font-semibold text-white">All Loan Applications</h2>
+          <button 
+            onClick={() => exportToCSV(loans, 'loans.csv')}
+            className="flex items-center text-sm font-medium text-gray-300 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 px-4 py-2.5 rounded-xl transition-colors"
+          >
+            <Download className="h-4 w-4 mr-2" /> Export
+          </button>
         </div>
         
         <div className="overflow-x-auto">

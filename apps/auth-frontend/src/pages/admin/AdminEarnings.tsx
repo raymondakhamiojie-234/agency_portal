@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Papa from 'papaparse';
-import { UploadCloud, CheckCircle, AlertCircle, Plus, Edit2, Trash2, X, Link, Bot, ArrowRight, Search, SkipForward } from 'lucide-react';
+import { UploadCloud, CheckCircle, AlertCircle, Plus, Edit2, Trash2, X, Link, Bot, ArrowRight, Search, SkipForward, Download } from 'lucide-react';
+import { exportToCSV } from '../../utils/export';
 
 export default function AdminEarnings() {
   const [earnings, setEarnings] = useState<any[]>([]);
@@ -471,9 +472,17 @@ export default function AdminEarnings() {
       <div className="bg-black/40 backdrop-blur-md border border-border rounded-2xl overflow-hidden">
         <div className="px-6 py-5 border-b border-border flex justify-between items-center">
           <h2 className="text-lg font-semibold text-white">All Earnings Records</h2>
-          <button onClick={openAddModal} className="flex items-center text-sm font-medium text-white bg-primary hover:bg-primary/90 px-4 py-2 rounded-lg transition-colors">
-            <Plus className="h-4 w-4 mr-2" /> Add Record
-          </button>
+          <div className="flex items-center space-x-4">
+            <button 
+              onClick={() => exportToCSV(earnings, 'earnings.csv')} 
+              className="flex items-center text-sm font-medium text-gray-300 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 px-4 py-2 rounded-lg transition-colors"
+            >
+              <Download className="h-4 w-4 mr-2" /> Export CSV
+            </button>
+            <button onClick={openAddModal} className="flex items-center text-sm font-medium text-white bg-primary hover:bg-primary/90 px-4 py-2 rounded-lg transition-colors">
+              <Plus className="h-4 w-4 mr-2" /> Add Record
+            </button>
+          </div>
         </div>
         
         <div className="overflow-x-auto">
