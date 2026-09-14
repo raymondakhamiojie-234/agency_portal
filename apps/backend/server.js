@@ -30,12 +30,32 @@ pool.connect()
   .then(async () => {
     console.log('Connected to PostgreSQL');
     try {
+      const idTypeRes = await pool.query(`
+        SELECT data_type 
+        FROM information_schema.columns 
+        WHERE table_name = 'auth_users' AND column_name = 'id'
+      `);
+      
+      let idType = 'UUID'; // fallback
+      if (idTypeRes.rows.length > 0) {
+        idType = idTypeRes.rows[0].data_type;
+      }
+
       await pool.query(`
         ALTER TABLE auth_users 
         ADD COLUMN IF NOT EXISTS is_partner BOOLEAN DEFAULT false,
-        ADD COLUMN IF NOT EXISTS partner_id UUID REFERENCES auth_users(id),
         ADD COLUMN IF NOT EXISTS partner_percentage DECIMAL(5,2) DEFAULT 0.00;
       `);
+
+      // Try adding partner_id separately to avoid failing the whole block if something goes wrong
+      try {
+        await pool.query(`
+          ALTER TABLE auth_users 
+          ADD COLUMN IF NOT EXISTS partner_id ${idType} REFERENCES auth_users(id);
+        `);
+      } catch(err) {
+        console.error('Failed to add partner_id:', err);
+      }
       console.log('DB migrations successful');
     } catch (e) {
       console.error('DB migrations failed', e);
