@@ -26,7 +26,7 @@ export default function FbPages() {
     try {
       const [pagesRes, profilesRes] = await Promise.all([
         axios.get('/api/admin/fb-pages', { withCredentials: true }),
-        axios.get('/api/admin/fb-profiles', { withCredentials: true })
+        axios.get('/api/admin/fb-sheet', { withCredentials: true })
       ]);
       setPages(pagesRes.data);
       setProfiles(profilesRes.data);
@@ -58,7 +58,7 @@ export default function FbPages() {
     setAssigning(true);
     try {
       await axios.put(`/api/admin/fb-pages/${selectedPage.id}/assign`, {
-        fb_profile_id: parseInt(selectedProfileId)
+        profileName: selectedProfileId // we are storing the string name here now
       }, { withCredentials: true });
       setIsAssignModalOpen(false);
       setSelectedPage(null);
@@ -223,8 +223,8 @@ export default function FbPages() {
                   className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-primary"
                 >
                   <option value="" disabled>-- Choose a Profile --</option>
-                  {profiles.map(p => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
+                  {profiles.map((p, index) => (
+                    <option key={index} value={p.name}>{p.name}</option>
                   ))}
                 </select>
               </div>

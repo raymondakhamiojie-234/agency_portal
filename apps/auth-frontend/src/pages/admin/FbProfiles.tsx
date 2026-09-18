@@ -16,39 +16,22 @@ export default function FbProfiles() {
   const fetchProfiles = async () => {
     try {
       const res = await axios.get('/api/admin/fb-sheet', { withCredentials: true });
-      const rawData = res.data || [];
+      // The new endpoint returns an array of { name: 'Profile', pages: [{name, url}] }
+      const profilesData = res.data || [];
       
-      // Assuming first row might be headers
-      const rows = rawData.length > 0 ? (rawData[0][0] === 'Profile Name' ? rawData.slice(1) : rawData) : [];
+      // Ensure each profile has a unique ID for React keys
+      const formattedProfiles = profilesData.map((p: any, index: number) => ({
+        id: `prof_${index}`,
+        name: p.name,
+        url: '', // Tabs don't have URLs natively
+        pages: (p.pages || []).map((page: any, pIndex: number) => ({
+          id: `page_${index}_${pIndex}`,
+          name: page.name,
+          url: page.url
+        }))
+      }));
       
-      const grouped: Record<string, any> = {};
-      
-      rows.forEach((row: any[]) => {
-        const profileName = row[0];
-        const pageName = row[1];
-        const pageUrl = row[2];
-        
-        if (!profileName) return;
-        
-        if (!grouped[profileName]) {
-          grouped[profileName] = {
-            id: profileName,
-            name: profileName,
-            url: '',
-            pages: []
-          };
-        }
-        
-        if (pageName) {
-          grouped[profileName].pages.push({
-            id: pageName + Math.random(),
-            name: pageName,
-            url: pageUrl
-          });
-        }
-      });
-      
-      setProfiles(Object.values(grouped));
+      setProfiles(formattedProfiles);
     } catch (err) {
       console.error('Failed to fetch FB profiles', err);
     } finally {

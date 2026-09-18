@@ -926,19 +926,15 @@ router.post('/fb-pages', async (req, res) => {
 
 router.put('/fb-pages/:id/assign', async (req, res) => {
   try {
-    const { fb_profile_id } = req.body;
+    const { profileName } = req.body;
     const pageId = req.params.id;
 
     const { rows } = await pool.query(
-      'UPDATE fb_pages SET fb_profile_id = $1 WHERE id = $2 RETURNING *',
-      [fb_profile_id, pageId]
+      'UPDATE fb_pages SET fb_profile_id = NULL WHERE id = $1 RETURNING *',
+      [pageId]
     );
 
     const page = rows[0];
-
-    // Get profile details
-    const profRes = await pool.query('SELECT name FROM fb_profiles WHERE id = $1', [fb_profile_id]);
-    const profileName = profRes.rows[0]?.name || 'Unknown Profile';
 
     // Sync to Google Sheet via Web App URL
     const GOOGLE_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxoiP5zbLO00ZbA9mw6l7jyQ93tCzW2Pg6GrhZ7K0QjiYN9HYP1yKoieH8CKpM2d6kN/exec';
