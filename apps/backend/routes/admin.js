@@ -853,6 +853,21 @@ router.put('/partners/:id', async (req, res) => {
   }
 });
 
+// FB Sheet Live Data
+router.get('/fb-sheet', async (req, res) => {
+  try {
+    const GOOGLE_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxoiP5zbLO00ZbA9mw6l7jyQ93tCzW2Pg6GrhZ7K0QjiYN9HYP1yKoieH8CKpM2d6kN/exec';
+    
+    const response = await fetch(GOOGLE_WEBAPP_URL);
+    const data = await response.json();
+    
+    res.json(data);
+  } catch (err) {
+    console.error("Error fetching from Google Sheet:", err);
+    res.status(500).json({ error: 'Failed to fetch from Google Sheet' });
+  }
+});
+
 // FB Profiles
 router.get('/fb-profiles', async (req, res) => {
   try {
