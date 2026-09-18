@@ -13,9 +13,11 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!role) return;
+    
     if (role === 'CREATOR') {
       fetchCreatorStats();
-    } else if (role === 'ADMIN') {
+    } else if (role === 'ADMIN' || role === 'PARTNER') {
       setLoading(false);
     }
   }, [role]);

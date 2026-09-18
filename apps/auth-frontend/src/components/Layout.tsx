@@ -42,8 +42,11 @@ export default function Layout() {
     );
   }
 
-  // Fallback role to CREATOR if not set in session
-  const role = session?.user?.role || 'CREATOR';
+  if (!session) {
+    return null; // Will be redirected by useEffect
+  }
+
+  const role = session.user?.role || 'CREATOR';
 
   return (
     <div className="min-h-screen bg-background flex text-white overflow-hidden relative">
