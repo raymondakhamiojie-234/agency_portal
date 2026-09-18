@@ -853,4 +853,99 @@ router.put('/partners/:id', async (req, res) => {
   }
 });
 
+// FB Profiles
+router.get('/fb-profiles', async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT * FROM fb_profiles ORDER BY created_at DESC');
+    // Also fetch counts of pages per profile
+    for (let i = 0; i < rows.length; i++) {
+      const pageRes = await pool.query('SELECT * FROM fb_pages WHERE fb_profile_id = $1', [rows[i].id]);
+      rows[i].pages = pageRes.rows;
+    }
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.post('/fb-profiles', async (req, res) => {
+  try {
+    const { name, url } = req.body;
+    const { rows } = await pool.query(
+      'INSERT INTO fb_profiles (name, url) VALUES ($1, $2) RETURNING *',
+      [name, url]
+    );
+    res.json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// FB Pages
+router.get('/fb-pages', async (req, res) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT p.*, prof.name as profile_name 
+      FROM fb_pages p 
+      LEFT JOIN fb_profiles prof ON p.fb_profile_id = prof.id 
+      ORDER BY p.created_at DESC
+    `);
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.post('/fb-pages', async (req, res) => {
+  try {
+    const { name, url } = req.body;
+    const { rows } = await pool.query(
+      'INSERT INTO fb_pages (name, url) VALUES ($1, $2) RETURNING *',
+      [name, url]
+    );
+    res.json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.put('/fb-pages/:id/assign', async (req, res) => {
+  try {
+    const { fb_profile_id } = req.body;
+    const pageId = req.params.id;
+
+    const { rows } = await pool.query(
+      'UPDATE fb_pages SET fb_profile_id = $1 WHERE id = $2 RETURNING *',
+      [fb_profile_id, pageId]
+    );
+
+    const page = rows[0];
+
+    // Get profile details
+    const profRes = await pool.query('SELECT name FROM fb_profiles WHERE id = $1', [fb_profile_id]);
+    const profileName = profRes.rows[0]?.name || 'Unknown Profile';
+
+    // Sync to Google Sheet via Web App URL
+    const GOOGLE_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxoiP5zbLO00ZbA9mw6l7jyQ93tCzW2Pg6GrhZ7K0QjiYN9HYP1yKoieH8CKpM2d6kN/exec';
+    
+    // Using native fetch since it's available in modern node
+    fetch(GOOGLE_WEBAPP_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        profileName: profileName,
+        pageName: page.name,
+        pageUrl: page.url
+      })
+    }).catch(err => console.error("Google Web App Sync Error:", err)); // Non-blocking
+
+    res.json({ success: true, page });
+  } catch (err) {
+    console.error('Error assigning page:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 export default router;

@@ -38,6 +38,8 @@ export default function Sidebar({ role = 'CREATOR', isOpen = false, onClose }: S
     { name: 'Support & Manager', path: '/admin/support', icon: MessageCircle },
     { name: 'Creators', path: '/admin/creators', icon: Users },
     { name: 'Partners', path: '/admin/partners', icon: Users },
+    { name: 'FB Profiles', path: '/admin/fb-profiles', icon: Users },
+    { name: 'FB Pages', path: '/admin/fb-pages', icon: FileText },
     { name: 'Earnings', path: '/admin/earnings', icon: Wallet },
     { name: 'Monetization', path: '/admin/monetization', icon: TrendingUp },
     { name: 'Payments', path: '/admin/payments', icon: CreditCard },

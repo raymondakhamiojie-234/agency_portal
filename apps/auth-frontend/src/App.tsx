@@ -11,6 +11,8 @@ import AdminCreators from './pages/admin/AdminCreators';
 import AdminPartners from './pages/admin/AdminPartners';
 import AdminLogin from './pages/admin/AdminLogin';
 import AdminInvoices from './pages/admin/AdminInvoices';
+import FbProfiles from './pages/admin/FbProfiles';
+import FbPages from './pages/admin/FbPages';
 import CreatorFinances from './pages/CreatorFinances';
 import CreatorProfile from './pages/CreatorProfile';
 import CreatorSupport from './pages/CreatorSupport';
@@ -61,6 +63,8 @@ function App() {
           <Route path="/admin/payments" element={<AdminPayments />} />
           <Route path="/admin/loans" element={<AdminLoans />} />
           <Route path="/admin/invoices" element={<AdminInvoices />} />
+          <Route path="/admin/fb-profiles" element={<FbProfiles />} />
+          <Route path="/admin/fb-pages" element={<FbPages />} />
           <Route path="/admin/notifications" element={<Notifications />} />
           
           {/* Partner Routes */}
