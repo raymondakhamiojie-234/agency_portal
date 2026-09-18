@@ -111,13 +111,15 @@ export default function FbProfiles() {
                       ) : <span className="text-gray-500 text-xs">No URL</span>}
                     </td>
                     <td className="px-6 py-4">
-                      <div className="space-y-1">
+                      <div className="max-h-32 overflow-y-auto pr-2 custom-scrollbar">
                         {p.pages && p.pages.length > 0 ? (
-                          p.pages.map((page: any) => (
-                            <div key={page.id} className="text-xs text-gray-300 bg-white/5 px-2 py-1 rounded inline-block mr-2 mb-1">
-                              {page.name}
-                            </div>
-                          ))
+                          <div className="flex flex-wrap gap-2">
+                            {p.pages.map((page: any) => (
+                              <div key={page.id} className="text-xs text-gray-300 bg-white/5 border border-white/10 px-2.5 py-1.5 rounded-lg whitespace-nowrap">
+                                {page.name}
+                              </div>
+                            ))}
+                          </div>
                         ) : (
                           <span className="text-gray-500 text-xs">No pages assigned</span>
                         )}
