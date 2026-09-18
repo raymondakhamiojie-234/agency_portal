@@ -15,8 +15,40 @@ export default function FbProfiles() {
 
   const fetchProfiles = async () => {
     try {
-      const res = await axios.get('/api/admin/fb-profiles', { withCredentials: true });
-      setProfiles(res.data);
+      const res = await axios.get('/api/admin/fb-sheet', { withCredentials: true });
+      const rawData = res.data || [];
+      
+      // Assuming first row might be headers
+      const rows = rawData.length > 0 ? (rawData[0][0] === 'Profile Name' ? rawData.slice(1) : rawData) : [];
+      
+      const grouped: Record<string, any> = {};
+      
+      rows.forEach((row: any[]) => {
+        const profileName = row[0];
+        const pageName = row[1];
+        const pageUrl = row[2];
+        
+        if (!profileName) return;
+        
+        if (!grouped[profileName]) {
+          grouped[profileName] = {
+            id: profileName,
+            name: profileName,
+            url: '',
+            pages: []
+          };
+        }
+        
+        if (pageName) {
+          grouped[profileName].pages.push({
+            id: pageName + Math.random(),
+            name: pageName,
+            url: pageUrl
+          });
+        }
+      });
+      
+      setProfiles(Object.values(grouped));
     } catch (err) {
       console.error('Failed to fetch FB profiles', err);
     } finally {
