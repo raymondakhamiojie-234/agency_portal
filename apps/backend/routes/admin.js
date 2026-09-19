@@ -886,10 +886,26 @@ router.get('/fb-profiles', async (req, res) => {
 router.post('/fb-profiles', async (req, res) => {
   try {
     const { name, url } = req.body;
+    
+    // 1. Save to local DB (optional now, but good for tracking)
     const { rows } = await pool.query(
       'INSERT INTO fb_profiles (name, url) VALUES ($1, $2) RETURNING *',
       [name, url]
     );
+
+    // 2. Trigger Google Apps Script to create the tab
+    const GOOGLE_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxoiP5zbLO00ZbA9mw6l7jyQ93tCzW2Pg6GrhZ7K0QjiYN9HYP1yKoieH8CKpM2d6kN/exec';
+    
+    await fetch(GOOGLE_WEBAPP_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        profileName: name
+      })
+    }).catch(err => console.error("Google Web App Sync Error (Profile Create):", err));
+
     res.json(rows[0]);
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
