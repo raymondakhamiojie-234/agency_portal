@@ -916,10 +916,9 @@ router.post('/fb-profiles', async (req, res) => {
 router.get('/fb-pages', async (req, res) => {
   try {
     const { rows } = await pool.query(`
-      SELECT p.*, prof.name as profile_name 
-      FROM fb_pages p 
-      LEFT JOIN fb_profiles prof ON p.fb_profile_id = prof.id 
-      ORDER BY p.created_at DESC
+      SELECT *, assigned_profile_name as profile_name 
+      FROM fb_pages 
+      ORDER BY created_at DESC
     `);
     res.json(rows);
   } catch (err) {
@@ -946,8 +945,8 @@ router.put('/fb-pages/:id/assign', async (req, res) => {
     const pageId = req.params.id;
 
     const { rows } = await pool.query(
-      'UPDATE fb_pages SET fb_profile_id = NULL WHERE id = $1 RETURNING *',
-      [pageId]
+      'UPDATE fb_pages SET assigned_profile_name = $1 WHERE id = $2 RETURNING *',
+      [profileName, pageId]
     );
 
     const page = rows[0];
