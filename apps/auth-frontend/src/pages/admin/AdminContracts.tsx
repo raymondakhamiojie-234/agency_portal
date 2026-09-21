@@ -44,7 +44,9 @@ export default function AdminContracts() {
       <div className="flex space-x-4 border-b border-border">
         <button
           onClick={() => setActiveTab('master')}
-          className={pb-4 text-sm font-medium transition-colors relative }
+          className={`pb-4 text-sm font-medium transition-colors relative ${
+            activeTab === 'master' ? 'text-primary' : 'text-gray-400 hover:text-white'
+          }`}
         >
           Master Agreements
           {activeTab === 'master' && (
@@ -53,7 +55,9 @@ export default function AdminContracts() {
         </button>
         <button
           onClick={() => setActiveTab('platform')}
-          className={pb-4 text-sm font-medium transition-colors relative }
+          className={`pb-4 text-sm font-medium transition-colors relative ${
+            activeTab === 'platform' ? 'text-primary' : 'text-gray-400 hover:text-white'
+          }`}
         >
           Platform Contracts
           {activeTab === 'platform' && (
