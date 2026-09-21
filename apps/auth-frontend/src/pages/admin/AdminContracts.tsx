@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { FileText, CheckCircle, Download, FileSignature } from 'lucide-react';
+import { CheckCircle, FileSignature } from 'lucide-react';
 
 export default function AdminContracts() {
   const [masterContracts, setMasterContracts] = useState<any[]>([]);

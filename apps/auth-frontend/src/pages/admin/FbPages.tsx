@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Layers as LayersIcon, Link as LinkIcon, Plus, Loader2, X, Share2 } from 'lucide-react';
+import { Layers as LayersIcon, Link as LinkIcon, Loader2, X, Share2 } from 'lucide-react';
 
 export default function FbPages() {
   const [pages, setPages] = useState<any[]>([]);
