@@ -105,23 +105,27 @@ export default function FbPages() {
               ) : pages.length === 0 ? (
                 <tr><td colSpan={5} className="px-6 py-12 text-center text-gray-500">No pages found.</td></tr>
               ) : (
-                pages.map((p) => (
-                  <tr key={p.id} className="hover:bg-white/[0.02] transition-colors">
+                pages.map((p) => {
+                  const safeUrl = Array.isArray(p.url) && p.url.length > 0 ? p.url[0] : (typeof p.url === 'string' ? p.url : null);
+                  return (
+                  <tr key={p.user_id || p.id} className="hover:bg-white/[0.02] transition-colors">
                     <td className="px-6 py-4">
                       <div className="font-medium text-gray-300">{p.creator_name || 'Unknown'}</div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="font-medium text-white text-base">{p.name}</div>
+                      <div className={`font-medium text-base ${p.id ? 'text-white' : 'text-gray-500 italic'}`}>{p.name}</div>
                     </td>
                     <td className="px-6 py-4">
-                      {p.url ? (
-                        <a href={p.url} target="_blank" rel="noreferrer" className="text-primary hover:underline text-xs flex items-center">
+                      {safeUrl ? (
+                        <a href={safeUrl} target="_blank" rel="noreferrer" className="text-primary hover:underline text-xs flex items-center">
                           <LinkIcon className="h-3 w-3 mr-1" /> View Page
                         </a>
                       ) : <span className="text-gray-500 text-xs">No URL</span>}
                     </td>
                     <td className="px-6 py-4">
-                      {p.profile_name ? (
+                      {!p.id ? (
+                        <span className="text-gray-600 text-xs">Waiting for creator...</span>
+                      ) : p.profile_name ? (
                         <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-500/10 text-green-400 border border-green-500/20">
                           {p.profile_name}
                         </span>
@@ -132,19 +136,21 @@ export default function FbPages() {
                       )}
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <button 
-                        onClick={() => {
-                          setSelectedPage(p);
-                          setSelectedProfileId(p.profile_name || '');
-                          setIsAssignModalOpen(true);
-                        }}
-                        className="text-xs bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white px-3 py-1.5 rounded-lg transition-colors font-medium inline-flex items-center"
-                      >
-                        <Share2 className="h-3 w-3 mr-1.5" /> Assign Profile
-                      </button>
+                      {p.id && (
+                        <button 
+                          onClick={() => {
+                            setSelectedPage(p);
+                            setSelectedProfileId(p.profile_name || '');
+                            setIsAssignModalOpen(true);
+                          }}
+                          className="text-xs bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white px-3 py-1.5 rounded-lg transition-colors font-medium inline-flex items-center"
+                        >
+                          <Share2 className="h-3 w-3 mr-1.5" /> Assign Profile
+                        </button>
+                      )}
                     </td>
                   </tr>
-                ))
+                )})
               )}
             </tbody>
           </table>

@@ -917,15 +917,16 @@ router.get('/fb-pages', async (req, res) => {
   try {
     const { rows } = await pool.query(`
       SELECT 
-        cp.id, 
-        cp.page_name as name, 
+        cp.id as id, 
+        u.id as user_id,
+        COALESCE(cp.page_name, 'No Page Provided') as name, 
         cp.page_urls as url, 
         cp.assigned_profile_name as profile_name,
         u.name as creator_name
-      FROM creator_profiles cp
-      LEFT JOIN auth_users u ON cp.user_id = u.id
-      WHERE cp.page_name IS NOT NULL AND cp.page_name != ''
-      ORDER BY cp.created_at DESC
+      FROM auth_users u
+      LEFT JOIN creator_profiles cp ON u.id = cp.user_id
+      WHERE u.is_admin = false
+      ORDER BY u.created_at DESC
     `);
     res.json(rows);
   } catch (err) {
