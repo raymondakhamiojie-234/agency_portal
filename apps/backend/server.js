@@ -57,14 +57,14 @@ pool.connect()
         console.error('Failed to add partner_id:', err);
       }
 
-      // Try adding assigned_profile_name to fb_pages
+      // Try adding assigned_profile_name to creator_profiles
       try {
         await pool.query(`
-          ALTER TABLE fb_pages 
+          ALTER TABLE creator_profiles 
           ADD COLUMN IF NOT EXISTS assigned_profile_name VARCHAR(255);
         `);
       } catch(err) {
-        console.error('Failed to add assigned_profile_name:', err);
+        console.error('Failed to add assigned_profile_name to creator_profiles:', err);
       }
       
       console.log('DB migrations successful');

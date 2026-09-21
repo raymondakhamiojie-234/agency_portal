@@ -916,9 +916,16 @@ router.post('/fb-profiles', async (req, res) => {
 router.get('/fb-pages', async (req, res) => {
   try {
     const { rows } = await pool.query(`
-      SELECT *, assigned_profile_name as profile_name 
-      FROM fb_pages 
-      ORDER BY created_at DESC
+      SELECT 
+        cp.id, 
+        cp.page_name as name, 
+        cp.page_urls as url, 
+        cp.assigned_profile_name as profile_name,
+        u.name as creator_name
+      FROM creator_profiles cp
+      LEFT JOIN auth_users u ON cp.user_id = u.id
+      WHERE cp.page_name IS NOT NULL AND cp.page_name != ''
+      ORDER BY cp.created_at DESC
     `);
     res.json(rows);
   } catch (err) {
@@ -927,16 +934,8 @@ router.get('/fb-pages', async (req, res) => {
 });
 
 router.post('/fb-pages', async (req, res) => {
-  try {
-    const { name, url } = req.body;
-    const { rows } = await pool.query(
-      'INSERT INTO fb_pages (name, url) VALUES ($1, $2) RETURNING *',
-      [name, url]
-    );
-    res.json(rows[0]);
-  } catch (err) {
-    res.status(500).json({ error: 'Server error' });
-  }
+  // Deprecated: Admins no longer manually create pages.
+  res.status(400).json({ error: 'Manual page creation is disabled. Pages are populated by creators.' });
 });
 
 router.put('/fb-pages/:id/assign', async (req, res) => {
@@ -945,27 +944,25 @@ router.put('/fb-pages/:id/assign', async (req, res) => {
     const pageId = req.params.id;
 
     const { rows } = await pool.query(
-      'UPDATE fb_pages SET assigned_profile_name = $1 WHERE id = $2 RETURNING *',
+      'UPDATE creator_profiles SET assigned_profile_name = $1 WHERE id = $2 RETURNING *',
       [profileName, pageId]
     );
 
     const page = rows[0];
 
-    // Sync to Google Sheet via Web App URL
-    const GOOGLE_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxoiP5zbLO00ZbA9mw6l7jyQ93tCzW2Pg6GrhZ7K0QjiYN9HYP1yKoieH8CKpM2d6kN/exec';
-    
-    // Using native fetch since it's available in modern node
-    fetch(GOOGLE_WEBAPP_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        profileName: profileName,
-        pageName: page.name,
-        pageUrl: page.url
-      })
-    }).catch(err => console.error("Google Web App Sync Error:", err)); // Non-blocking
+    // Trigger Google Apps Script to update sheet
+    if (page && profileName) {
+      const GOOGLE_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxoiP5zbLO00ZbA9mw6l7jyQ93tCzW2Pg6GrhZ7K0QjiYN9HYP1yKoieH8CKpM2d6kN/exec';
+      fetch(GOOGLE_WEBAPP_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          profileName: profileName,
+          pageName: page.page_name,
+          pageUrl: page.page_urls || ""
+        })
+      }).catch(err => console.error("Google Web App Sync Error (Assign Page):", err));
+    }
 
     res.json({ success: true, page });
   } catch (err) {

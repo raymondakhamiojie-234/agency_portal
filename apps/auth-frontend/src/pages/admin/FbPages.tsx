@@ -83,12 +83,7 @@ export default function FbPages() {
         </div>
         
         <div className="flex items-center space-x-3">
-          <button 
-            onClick={() => setIsCreateModalOpen(true)}
-            className="bg-primary hover:bg-primary/90 text-white px-5 py-2.5 rounded-xl font-medium transition-colors flex items-center shadow-lg shadow-primary/20"
-          >
-            <Plus className="h-4 w-4 mr-2" /> New FB Page
-          </button>
+          {/* Create Button Removed */}
         </div>
       </div>
 
@@ -97,6 +92,7 @@ export default function FbPages() {
           <table className="w-full text-sm text-left">
             <thead className="text-xs text-gray-400 uppercase bg-black/40 border-b border-white/10">
               <tr>
+                <th className="px-6 py-5 font-semibold">Creator</th>
                 <th className="px-6 py-5 font-semibold">Page Name</th>
                 <th className="px-6 py-5 font-semibold">Page URL</th>
                 <th className="px-6 py-5 font-semibold">Assigned Profile</th>
@@ -105,12 +101,15 @@ export default function FbPages() {
             </thead>
             <tbody className="divide-y divide-white/5">
               {loading ? (
-                <tr><td colSpan={4} className="px-6 py-12 text-center text-gray-500"><Loader2 className="animate-spin h-6 w-6 mx-auto" /></td></tr>
+                <tr><td colSpan={5} className="px-6 py-12 text-center text-gray-500"><Loader2 className="animate-spin h-6 w-6 mx-auto" /></td></tr>
               ) : pages.length === 0 ? (
-                <tr><td colSpan={4} className="px-6 py-12 text-center text-gray-500">No pages found.</td></tr>
+                <tr><td colSpan={5} className="px-6 py-12 text-center text-gray-500">No pages found.</td></tr>
               ) : (
                 pages.map((p) => (
                   <tr key={p.id} className="hover:bg-white/[0.02] transition-colors">
+                    <td className="px-6 py-4">
+                      <div className="font-medium text-gray-300">{p.creator_name || 'Unknown'}</div>
+                    </td>
                     <td className="px-6 py-4">
                       <div className="font-medium text-white text-base">{p.name}</div>
                     </td>
@@ -136,7 +135,7 @@ export default function FbPages() {
                       <button 
                         onClick={() => {
                           setSelectedPage(p);
-                          setSelectedProfileId(p.fb_profile_id?.toString() || '');
+                          setSelectedProfileId(p.profile_name || '');
                           setIsAssignModalOpen(true);
                         }}
                         className="text-xs bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white px-3 py-1.5 rounded-lg transition-colors font-medium inline-flex items-center"
