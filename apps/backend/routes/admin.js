@@ -972,4 +972,31 @@ router.put('/fb-pages/:id/assign', async (req, res) => {
   }
 });
 
+// Contracts (Admin View)
+router.get('/contracts', async (req, res) => {
+  try {
+    const { rows: masterContracts } = await pool.query(`
+      SELECT c.*, u.name as creator_name, u.email as creator_email
+      FROM contracts c
+      JOIN auth_users u ON c.creator_id = u.id
+      ORDER BY c.created_at DESC
+    `);
+    
+    const { rows: platformContracts } = await pool.query(`
+      SELECT pc.*, u.name as creator_name, u.email as creator_email
+      FROM platform_contracts pc
+      JOIN auth_users u ON pc.creator_id = u.id
+      ORDER BY pc.created_at DESC
+    `);
+    
+    res.json({
+      master: masterContracts,
+      platform: platformContracts
+    });
+  } catch (err) {
+    console.error('Error fetching admin contracts:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 export default router;

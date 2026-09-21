@@ -9,6 +9,7 @@ import AdminMonetization from './pages/admin/AdminMonetization';
 import AdminSupport from './pages/admin/AdminSupport';
 import AdminCreators from './pages/admin/AdminCreators';
 import AdminPartners from './pages/admin/AdminPartners';
+import AdminContracts from './pages/admin/AdminContracts';
 import AdminLogin from './pages/admin/AdminLogin';
 import AdminInvoices from './pages/admin/AdminInvoices';
 import FbProfiles from './pages/admin/FbProfiles';
@@ -58,6 +59,7 @@ function App() {
           <Route path="/admin/support" element={<AdminSupport />} />
           <Route path="/admin/creators" element={<AdminCreators />} />
           <Route path="/admin/partners" element={<AdminPartners />} />
+          <Route path="/admin/contracts" element={<AdminContracts />} />
           <Route path="/admin/earnings" element={<AdminEarnings />} />
           <Route path="/admin/monetization" element={<AdminMonetization />} />
           <Route path="/admin/payments" element={<AdminPayments />} />
