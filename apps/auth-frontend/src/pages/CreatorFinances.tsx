@@ -122,6 +122,7 @@ export default function CreatorFinances() {
               <tr>
                 <th className="px-6 py-4 font-medium">Period</th>
                 <th className="px-6 py-4 font-medium">Platform</th>
+                <th className="px-6 py-4 font-medium">Account Name</th>
                 <th className="px-6 py-4 font-medium">Amount</th>
                 <th className="px-6 py-4 font-medium">Tax Deducted</th>
                 <th className="px-6 py-4 font-medium">Status</th>
@@ -130,9 +131,9 @@ export default function CreatorFinances() {
             </thead>
             <tbody className="divide-y divide-border print:divide-gray-300">
               {loading ? (
-                <tr><td colSpan={6} className="px-6 py-8 text-center text-gray-500">Loading...</td></tr>
+                <tr><td colSpan={7} className="px-6 py-8 text-center text-gray-500">Loading...</td></tr>
               ) : earnings.length === 0 ? (
-                <tr><td colSpan={6} className="px-6 py-8 text-center text-gray-500">No earnings history found.</td></tr>
+                <tr><td colSpan={7} className="px-6 py-8 text-center text-gray-500">No earnings history found.</td></tr>
               ) : (
                 earnings.map((e) => (
                   <tr key={e.id} className="hover:bg-white/[0.02] transition-colors print:hover:bg-transparent">
@@ -142,6 +143,7 @@ export default function CreatorFinances() {
                         {e.platform}
                       </div>
                     </td>
+                    <td className="px-6 py-4 text-gray-400 print:text-gray-700">{e.account_name || '-'}</td>
                     <td className="px-6 py-4 font-bold text-white print:text-black">{formatCurrency(e.amount, e.currency)}</td>
                     <td className="px-6 py-4 text-gray-400 print:text-gray-600">
                       {e.withholding_tax ? formatCurrency(e.withholding_tax, e.currency) : '-'}

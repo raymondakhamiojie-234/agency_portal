@@ -66,6 +66,16 @@ pool.connect()
       } catch(err) {
         console.error('Failed to add assigned_profile_name to creator_profiles:', err);
       }
+
+      // Try adding account_name to earnings for specific page/channel tracking
+      try {
+        await pool.query(`
+          ALTER TABLE earnings
+          ADD COLUMN IF NOT EXISTS account_name VARCHAR(255);
+        `);
+      } catch(err) {
+        console.error('Failed to add account_name to earnings:', err);
+      }
       
       console.log('DB migrations successful');
     } catch (e) {

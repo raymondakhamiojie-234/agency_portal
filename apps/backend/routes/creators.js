@@ -93,6 +93,7 @@ router.get('/earnings', async (req, res) => {
     res.json(rows.map(row => ({
       id: row.id,
       platform: row.platform,
+      account_name: row.account_name,
       amount: row.amount,
       currency: 'USD',
       period: row.earning_date ? new Date(row.earning_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'Unknown',

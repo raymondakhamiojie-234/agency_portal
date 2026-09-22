@@ -69,6 +69,7 @@ router.get('/earnings', async (req, res) => {
       creator_name: row.creator_name,
       creator_email: row.creator_email,
       platform: row.platform,
+      account_name: row.account_name,
       period: row.earning_date ? new Date(row.earning_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'Unknown',
       earning_date: row.earning_date,
       amount: row.amount,
@@ -84,11 +85,11 @@ router.get('/earnings', async (req, res) => {
 
 router.post('/earnings', async (req, res) => {
   try {
-    const { creator_id, platform, amount, earning_date, payout_status, withholding_tax } = req.body;
+    const { creator_id, platform, account_name, amount, earning_date, payout_status, withholding_tax } = req.body;
     await pool.query(
-      `INSERT INTO earnings (creator_id, platform, amount, earning_date, payout_status, withholding_tax) 
-       VALUES ($1, $2, $3, $4, $5, $6)`,
-      [creator_id, platform, parseFloat(amount), earning_date ? new Date(earning_date) : new Date(), payout_status || 'UNPAID', parseFloat(withholding_tax || 0)]
+      `INSERT INTO earnings (creator_id, platform, account_name, amount, earning_date, payout_status, withholding_tax) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [creator_id, platform, account_name, parseFloat(amount), earning_date ? new Date(earning_date) : new Date(), payout_status || 'UNPAID', parseFloat(withholding_tax || 0)]
     );
     res.json({ success: true });
   } catch (err) {
@@ -99,10 +100,10 @@ router.post('/earnings', async (req, res) => {
 
 router.put('/earnings/:id', async (req, res) => {
   try {
-    const { platform, amount, earning_date, payout_status, withholding_tax } = req.body;
+    const { platform, account_name, amount, earning_date, payout_status, withholding_tax } = req.body;
     await pool.query(
-      `UPDATE earnings SET platform=$1, amount=$2, earning_date=$3, payout_status=$4, withholding_tax=$5 WHERE id=$6`,
-      [platform, parseFloat(amount), earning_date ? new Date(earning_date) : new Date(), payout_status || 'UNPAID', parseFloat(withholding_tax || 0), req.params.id]
+      `UPDATE earnings SET platform=$1, account_name=$2, amount=$3, earning_date=$4, payout_status=$5, withholding_tax=$6 WHERE id=$7`,
+      [platform, account_name, parseFloat(amount), earning_date ? new Date(earning_date) : new Date(), payout_status || 'UNPAID', parseFloat(withholding_tax || 0), req.params.id]
     );
     res.json({ success: true });
   } catch (err) {
@@ -260,7 +261,7 @@ router.post('/earnings/confirm-import', async (req, res) => {
 
   for (const record of records) {
     try {
-      const { creator_id, platform, amount, withholding_tax, earning_date, payout_status } = record;
+      const { creator_id, platform, account_name, amount, withholding_tax, earning_date, payout_status, original_id } = record;
       
       const contractRes = await pool.query("SELECT revenue_share_percentage FROM contracts WHERE creator_id = $1 AND status = 'ACTIVE' ORDER BY created_at DESC LIMIT 1", [creator_id]);
       const revShare = contractRes.rows.length > 0 ? parseFloat(contractRes.rows[0].revenue_share_percentage) : 100;
@@ -273,10 +274,16 @@ router.post('/earnings/confirm-import', async (req, res) => {
       let parsedDate = new Date(earning_date);
       if (isNaN(parsedDate.getTime())) parsedDate = new Date();
 
+      // If account_name was not provided explicitly, use original_id (which holds the original CSV 'Page Name' string)
+      let finalAccountName = account_name;
+      if (!finalAccountName && original_id && typeof original_id === 'string' && original_id !== String(creator_id)) {
+        finalAccountName = original_id;
+      }
+
       await pool.query(
-        `INSERT INTO earnings (creator_id, platform, amount, earning_date, payout_status, withholding_tax) 
-         VALUES ($1, $2, $3, $4, $5, $6)`,
-        [creator_id, platform || 'Facebook', finalAmount, parsedDate, payout_status || 'UNPAID', tax]
+        `INSERT INTO earnings (creator_id, platform, account_name, amount, earning_date, payout_status, withholding_tax) 
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [creator_id, platform || 'Facebook', finalAccountName, finalAmount, parsedDate, payout_status || 'UNPAID', tax]
       );
       imported++;
     } catch (err) {

@@ -32,7 +32,7 @@ export default function AdminEarnings() {
   const [creators, setCreators] = useState<any[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState({ id: '', creator_id: '', platform: 'Instagram', amount: '', withholding_tax: '', earning_date: '', payout_status: 'UNPAID' });
+  const [formData, setFormData] = useState({ id: '', creator_id: '', platform: 'Instagram', account_name: '', amount: '', withholding_tax: '', earning_date: '', payout_status: 'UNPAID' });
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -198,7 +198,7 @@ export default function AdminEarnings() {
 
   const openAddModal = () => {
     setIsEditing(false);
-    setFormData({ id: '', creator_id: creators[0]?.id || '', platform: 'Instagram', amount: '', withholding_tax: '', earning_date: new Date().toISOString().split('T')[0], payout_status: 'UNPAID' });
+    setFormData({ id: '', creator_id: creators[0]?.id || '', platform: 'Instagram', account_name: '', amount: '', withholding_tax: '', earning_date: new Date().toISOString().split('T')[0], payout_status: 'UNPAID' });
     setShowModal(true);
   };
 
@@ -208,6 +208,7 @@ export default function AdminEarnings() {
       id: record.id,
       creator_id: record.creator_id,
       platform: record.platform,
+      account_name: record.account_name || '',
       amount: record.amount,
       withholding_tax: record.withholding_tax || '',
       earning_date: record.earning_date ? new Date(record.earning_date).toISOString().split('T')[0] : '',
@@ -491,6 +492,7 @@ export default function AdminEarnings() {
               <tr>
                 <th className="px-6 py-4 font-medium">Creator</th>
                 <th className="px-6 py-4 font-medium">Platform</th>
+                <th className="px-6 py-4 font-medium">Account Name</th>
                 <th className="px-6 py-4 font-medium">Period</th>
                 <th className="px-6 py-4 font-medium">Amount</th>
                 <th className="px-6 py-4 font-medium">Status</th>
@@ -500,9 +502,9 @@ export default function AdminEarnings() {
             </thead>
             <tbody className="divide-y divide-border">
               {loading ? (
-                <tr><td colSpan={7} className="px-6 py-8 text-center text-gray-500">Loading...</td></tr>
+                <tr><td colSpan={8} className="px-6 py-8 text-center text-gray-500">Loading...</td></tr>
               ) : earnings.length === 0 ? (
-                <tr><td colSpan={7} className="px-6 py-8 text-center text-gray-500">No earnings records found.</td></tr>
+                <tr><td colSpan={8} className="px-6 py-8 text-center text-gray-500">No earnings records found.</td></tr>
               ) : (
                 earnings.map((e) => (
                   <tr key={e.id} className="hover:bg-white/[0.02] transition-colors">
@@ -511,6 +513,7 @@ export default function AdminEarnings() {
                       <div className="text-xs text-gray-500">{e.creator_email}</div>
                     </td>
                     <td className="px-6 py-4 text-gray-300">{e.platform}</td>
+                    <td className="px-6 py-4 text-gray-300">{e.account_name || <span className="text-gray-600 italic">N/A</span>}</td>
                     <td className="px-6 py-4 text-gray-300">{e.period}</td>
                     <td className="px-6 py-4 font-medium text-white">{formatCurrency(e.amount, e.currency)}</td>
                     <td className="px-6 py-4">
@@ -581,7 +584,18 @@ export default function AdminEarnings() {
                   value={formData.platform} 
                   onChange={e => setFormData({...formData, platform: e.target.value})}
                   className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-primary"
-                  placeholder="e.g. Instagram, TikTok"
+                  placeholder="e.g. Instagram, TikTok, Facebook"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Account/Page Name (Optional)</label>
+                <input 
+                  type="text" 
+                  value={formData.account_name} 
+                  onChange={e => setFormData({...formData, account_name: e.target.value})}
+                  className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-primary"
+                  placeholder="e.g. John Doe Gaming"
                 />
               </div>
 
