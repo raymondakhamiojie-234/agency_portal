@@ -19,8 +19,10 @@ import CreatorProfile from './pages/CreatorProfile';
 import CreatorSupport from './pages/CreatorSupport';
 import CreatorLoan from './pages/CreatorLoan';
 import CreatorContracts from './pages/CreatorContracts';
+import CreatorPortfolio from './pages/CreatorPortfolio';
 import CreatorInvoices from './pages/CreatorInvoices';
 import CreatorMonetization from './pages/CreatorMonetization';
+import PublicPortfolio from './pages/public/PublicPortfolio';
 import Notifications from './pages/Notifications';
 import Signup from './pages/Signup';
 import ForgotPassword from './pages/ForgotPassword';
@@ -42,6 +44,7 @@ function App() {
         <Route element={<Layout />}>
           {/* Shared / Creator Routes */}
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/portfolio" element={<CreatorPortfolio />} />
           <Route path="/support" element={<CreatorSupport />} />
           <Route path="/profile" element={<CreatorProfile />} />
           <Route path="/finances" element={<CreatorFinances />} />
@@ -72,6 +75,10 @@ function App() {
           {/* Partner Routes */}
           <Route path="/partner/dashboard" element={<PartnerDashboard />} />
         </Route>
+
+        {/* Public Creator Portfolios (creators.falcusmedia.com/:slug or /p/:slug) */}
+        <Route path="/p/:slug" element={<PublicPortfolio />} />
+        <Route path="/:slug" element={<PublicPortfolio />} />
       </Routes>
     </BrowserRouter>
   );
