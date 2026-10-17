@@ -18,11 +18,15 @@ export default function Login() {
     try {
       // Cross-origin request to the backend Auth.js endpoint
       // Using /api/auth/callback/credentials-signin since that's the custom id in backend
-      await axios.post(
+      const res = await axios.post(
         '/api/auth/callback/credentials-signin',
         { email, password },
         { withCredentials: true }
       );
+
+      if (res.data?.token) {
+        localStorage.setItem('auth_token', res.data.token);
+      }
 
       navigate('/dashboard');
     } catch (err: any) {

@@ -45,7 +45,7 @@ router.post('/callback/credentials-signup', async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
 
-    res.json({ user });
+    res.json({ token, user });
   } catch (err) {
     console.error('Signup error:', err);
     res.status(500).json({ message: 'Internal server error' });
@@ -99,6 +99,7 @@ router.post('/callback/credentials-signin', async (req, res) => {
     });
 
     res.json({
+      token,
       user: {
         id: user.id,
         name: user.name,
@@ -122,7 +123,9 @@ router.post('/signout', (req, res) => {
 });
 
 router.get('/session', (req, res) => {
-  const token = req.cookies.auth_token;
+  const authHeader = req.headers.authorization;
+  const bearerToken = authHeader && authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
+  const token = req.cookies.auth_token || bearerToken;
   
   if (!token) {
     return res.status(401).json({});
@@ -145,7 +148,9 @@ router.get('/session', (req, res) => {
 
 // Middleware to protect routes
 export const requireAuth = (req, res, next) => {
-  const token = req.cookies.auth_token;
+  const authHeader = req.headers.authorization;
+  const bearerToken = authHeader && authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
+  const token = req.cookies.auth_token || bearerToken;
   if (!token) return res.status(401).json({ error: 'Unauthorized' });
 
   try {

@@ -19,11 +19,15 @@ export default function Signup() {
     setError('');
 
     try {
-      await axios.post(
+      const res = await axios.post(
         '/api/auth/callback/credentials-signup',
         { name, email, password, partner_id: partnerId },
         { withCredentials: true }
       );
+
+      if (res.data?.token) {
+        localStorage.setItem('auth_token', res.data.token);
+      }
 
       navigate('/dashboard');
     } catch (err: any) {

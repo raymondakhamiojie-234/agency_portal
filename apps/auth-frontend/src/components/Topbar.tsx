@@ -12,6 +12,7 @@ export default function Topbar({ user, onMenuClick }: TopbarProps) {
   const navigate = useNavigate();
 
   const handleLogout = async () => {
+    localStorage.removeItem('auth_token');
     try {
       await axios.post(
         '/api/auth/signout',
@@ -24,6 +25,7 @@ export default function Topbar({ user, onMenuClick }: TopbarProps) {
       navigate('/login');
     } catch (err) {
       console.error('Logout failed', err);
+      navigate('/login');
     }
   };
 

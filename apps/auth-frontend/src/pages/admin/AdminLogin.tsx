@@ -26,9 +26,13 @@ export default function AdminLogin() {
 
       if (user.role !== 'ADMIN') {
         // If they logged in successfully but aren't an admin, sign them out immediately
+        localStorage.removeItem('auth_token');
         await axios.post('/api/auth/signout', {}, { withCredentials: true });
         setError('Unauthorized: Admin access required.');
       } else {
+        if (response.data?.token) {
+          localStorage.setItem('auth_token', response.data.token);
+        }
         navigate('/dashboard');
       }
     } catch (err: any) {

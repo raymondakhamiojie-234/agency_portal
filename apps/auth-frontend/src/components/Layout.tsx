@@ -19,13 +19,13 @@ export default function Layout() {
         });
         
         if (response.data && typeof response.data === 'object' && response.data.user) {
-          // Since we need the full user object including role, we might need a separate API 
-          // call if session doesn't contain it. For now we assume standard user object.
           setSession(response.data);
         } else {
+          localStorage.removeItem('auth_token');
           navigate('/login');
         }
       } catch (error) {
+        localStorage.removeItem('auth_token');
         navigate('/login');
       } finally {
         setLoading(false);
