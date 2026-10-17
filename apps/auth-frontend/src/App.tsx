@@ -23,12 +23,21 @@ import CreatorPortfolio from './pages/CreatorPortfolio';
 import CreatorInvoices from './pages/CreatorInvoices';
 import CreatorMonetization from './pages/CreatorMonetization';
 import PublicPortfolio from './pages/public/PublicPortfolio';
+import CreatorsLanding from './pages/public/CreatorsLanding';
 import Notifications from './pages/Notifications';
 import Signup from './pages/Signup';
 import ForgotPassword from './pages/ForgotPassword';
 import Settings from './pages/Settings';
 import Leaderboard from './pages/Leaderboard';
 import PartnerDashboard from './pages/partner/PartnerDashboard';
+
+function RootRoute() {
+  const isCreatorsSubdomain = typeof window !== 'undefined' && window.location.hostname.includes('creators.falcusmedia.com');
+  if (isCreatorsSubdomain) {
+    return <CreatorsLanding />;
+  }
+  return <Navigate to="/dashboard" replace />;
+}
 
 function App() {
   return (
@@ -38,7 +47,8 @@ function App() {
         <Route path="/admin-login" element={<AdminLogin />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/creators" element={<CreatorsLanding />} />
+        <Route path="/" element={<RootRoute />} />
         
         {/* Protected Routes Wrapper */}
         <Route element={<Layout />}>
