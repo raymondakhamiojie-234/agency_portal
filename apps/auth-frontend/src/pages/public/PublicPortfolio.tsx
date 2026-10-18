@@ -3,17 +3,38 @@ import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import { 
   CheckCircle, 
-  ExternalLink, 
   Send, 
   Play, 
   X, 
-  Menu,
-  Globe
+  Menu, 
+  Calendar, 
+  Code2, 
+  Smile, 
+  Trophy, 
+  User, 
+  Download, 
+  ArrowUpRight, 
+  Mail, 
+  Phone,
+  Sparkles
 } from 'lucide-react';
 
-const YouTubeIcon = () => (
+// Tech & Social Brand SVGs (Resilient, zero-dependency)
+const GithubIcon = () => (
   <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+    <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+  </svg>
+);
+
+const LinkedinIcon = () => (
+  <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+    <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 8.76a1.45 1.45 0 1 0 0-2.9 1.45 1.45 0 0 0 0 2.9m1.4 9.74v-8.37H5.06v8.37h2.8z"/>
+  </svg>
+);
+
+const TwitterIcon = () => (
+  <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
   </svg>
 );
 
@@ -25,9 +46,9 @@ const InstagramIcon = () => (
   </svg>
 );
 
-const TwitterIcon = () => (
+const YouTubeIcon = () => (
   <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
   </svg>
 );
 
@@ -47,11 +68,11 @@ export default function PublicPortfolio() {
   const [inquirySuccess, setInquirySuccess] = useState(false);
   const [inquiryError, setInquiryError] = useState('');
 
-  // Video Reel Modal State
+  // Video / Project Modal State
   const [activeVideoUrl, setActiveVideoUrl] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Determine active slug from params or pathname
+  // Active slug
   const activeSlug = slug || window.location.pathname.replace(/^\/(?:p\/)?/, '').split('/')[0];
 
   useEffect(() => {
@@ -108,7 +129,7 @@ export default function PublicPortfolio() {
   const scrollToSection = (id: string, packageTitle?: string) => {
     if (packageTitle) {
       setCampaignDetails((prev) => 
-        prev ? `${prev}\nSelected Package: ${packageTitle}` : `Selected Package: ${packageTitle}`
+        prev ? `${prev}\nInterested In: ${packageTitle}` : `Interested In: ${packageTitle}`
       );
     }
     const elem = document.getElementById(id);
@@ -133,28 +154,28 @@ export default function PublicPortfolio() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#FAF7F2] flex flex-col items-center justify-center text-[#581c87]">
-        <div className="w-12 h-12 rounded-full border-2 border-[#581c87] border-t-transparent animate-spin mb-4" />
-        <p className="font-serif italic text-sm tracking-widest text-[#6b21a8]">Loading Media Kit...</p>
+      <div className="min-h-screen bg-[#07070d] flex flex-col items-center justify-center text-white">
+        <div className="w-12 h-12 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin mb-4" />
+        <p className="font-mono text-xs uppercase tracking-widest text-indigo-400">Loading Portfolio...</p>
       </div>
     );
   }
 
   if (error || !portfolio) {
     return (
-      <div className="min-h-screen bg-[#FAF7F2] flex flex-col items-center justify-center text-black px-4">
-        <div className="max-w-md w-full bg-white border border-[#581c87]/15 p-10 rounded-3xl shadow-xl text-center space-y-5">
-          <div className="w-16 h-16 rounded-2xl bg-[#581c87] text-white flex items-center justify-center mx-auto text-2xl font-serif">
+      <div className="min-h-screen bg-[#07070d] flex flex-col items-center justify-center text-white px-4">
+        <div className="max-w-md w-full bg-[#0d0e17] border border-white/10 p-10 rounded-3xl shadow-2xl text-center space-y-5">
+          <div className="w-16 h-16 rounded-2xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center mx-auto text-2xl font-bold">
             !
           </div>
-          <h1 className="text-2xl font-serif italic text-[#581c87] tracking-tight">Portfolio Unavailable</h1>
-          <p className="text-gray-600 text-sm leading-relaxed">
+          <h1 className="text-2xl font-bold tracking-tight text-white">Portfolio Unavailable</h1>
+          <p className="text-gray-400 text-sm leading-relaxed">
             {error || 'This creator portfolio could not be found or has not been published yet.'}
           </p>
           <div className="pt-2">
             <Link
               to="/login"
-              className="inline-flex items-center px-6 py-3 bg-[#581c87] hover:bg-[#6b21a8] text-white rounded-full text-xs font-semibold uppercase tracking-wider transition-colors shadow-md"
+              className="inline-flex items-center px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold uppercase tracking-wider transition-colors shadow-lg shadow-indigo-600/30"
             >
               Creator Portal Login
             </Link>
@@ -182,361 +203,326 @@ export default function PublicPortfolio() {
     ? JSON.parse(portfolio.services || '[]')
     : [];
 
-  // Starting package rate for the circular sticker badge
-  const startingRate = services.length > 0 && services[0]?.price 
-    ? `$${services[0].price}` 
-    : '$225';
+  const creatorName = portfolio.display_name || 'Alex';
+  const firstName = creatorName.split(' ')[0] || creatorName;
+  const avatarUrl = portfolio.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80';
+  const roleTitle = portfolio.tagline || "I'M A DIGITAL CREATOR & DEVELOPER";
 
-  // High fashion fallback photos for the editorial collage & polaroids
-  const fallbackPhotos = [
-    portfolio.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=900&q=80',
-    'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=800&q=80',
-    'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=800&q=80',
-    'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=800&q=80',
-    'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=800&q=80'
+  // Default featured projects if none configured
+  const defaultProjects = [
+    {
+      title: "E-Commerce Platform",
+      desc: "Full-stack e-commerce solution with modern UI/UX and seamless checkout experience.",
+      image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80",
+      tag: "Web & Fullstack",
+      url: "#"
+    },
+    {
+      title: "Task Management App",
+      desc: "Collaborative task management application built for high-output creative teams.",
+      image: "https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?auto=format&fit=crop&w=800&q=80",
+      tag: "UI/UX & Mobile",
+      url: "#"
+    },
+    {
+      title: "Crypto Analytics Dashboard",
+      desc: "Real-time cryptocurrency tracking dashboard with live interactive charts and telemetry.",
+      image: "https://images.unsplash.com/photo-1642543492481-44e81e3914a7?auto=format&fit=crop&w=800&q=80",
+      tag: "Fintech & Data",
+      url: "#"
+    }
   ];
 
-  const creatorName = portfolio.display_name || 'Creator';
-  const firstName = creatorName.split(' ')[0] || creatorName;
-  const locationText = portfolio.location || 'NEW YORK / GLOBAL';
+  const projectsToDisplay = featuredMedia.length > 0 ? featuredMedia : defaultProjects;
+
+  // Skills / Channels progress meters
+  const skills = [
+    { name: "HTML & Architecture", pct: 95, color: "from-orange-500 to-amber-500" },
+    { name: "React.js & Next.js", pct: 85, color: "from-cyan-500 to-blue-500" },
+    { name: "Node.js & Backend", pct: 80, color: "from-emerald-500 to-green-500" },
+    { name: "CSS3 & Tailwind", pct: 90, color: "from-sky-500 to-indigo-500" },
+    { name: "JavaScript / TypeScript", pct: 90, color: "from-yellow-500 to-amber-500" },
+    { name: "Git & Version Control", pct: 85, color: "from-rose-500 to-pink-500" }
+  ];
 
   return (
-    <div className="min-h-screen bg-[#FAF7F2] text-[#2b0938] selection:bg-[#581c87] selection:text-white font-sans overflow-x-hidden antialiased">
-
-      {/* Top Falcus Media Agency Status Ribbon */}
-      <div className="w-full bg-[#f3ede4] border-b border-[#581c87]/10 px-4 sm:px-8 py-2.5 text-xs flex items-center justify-between font-mono">
-        <div className="flex items-center space-x-2">
-          <span className="w-2 h-2 rounded-full bg-[#7e14ff] animate-pulse" />
-          <span className="font-bold uppercase tracking-wider text-[#581c87]">Falcus Media Verified Creator</span>
-        </div>
-        <div className="flex items-center space-x-6 text-[#6b21a8]">
-          <span className="hidden sm:inline font-mono tracking-widest text-[11px]">
-            OFFICIAL MEDIA KIT // {portfolio.slug?.toUpperCase()}
-          </span>
-          <button 
-            onClick={() => scrollToSection('inquiry-section')}
-            className="font-bold text-[#581c87] hover:text-[#7e14ff] transition-colors underline uppercase text-[11px] tracking-wider"
-          >
-            Submit Proposal &rarr;
-          </button>
-        </div>
-      </div>
-
+    <div className="min-h-screen bg-[#07070d] text-gray-200 selection:bg-indigo-500 selection:text-white font-sans antialiased overflow-x-hidden">
+      
       {/* =========================================================================
-          SECTION 1: EDITORIAL HERO POSTER (Matches Reference Image Exactly)
+          TOP NAVBAR (Matches CodeCraft Header in Reference)
          ========================================================================= */}
-      <section className="relative w-full min-h-[92vh] sm:min-h-screen bg-[#e8e4dc] flex flex-col justify-between overflow-hidden border-b border-[#581c87]/15">
-        
-        {/* Background Editorial Photos Collage */}
-        <div className="absolute inset-0 z-0">
-          <div className="relative w-full h-full flex flex-col md:flex-row">
-            {/* Main Portrait Background */}
-            <div className="relative w-full md:w-3/5 h-full overflow-hidden">
-              <img 
-                src={fallbackPhotos[0]} 
-                alt={creatorName}
-                className="w-full h-full object-cover object-top filter brightness-95 contrast-105"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 md:hidden" />
-            </div>
-
-            {/* Right Side Editorial Inset (Matches second pose in mockup) */}
-            <div className="hidden md:block relative w-2/5 h-full overflow-hidden bg-[#ded8cd] border-l border-white/20">
-              <img 
-                src={fallbackPhotos[1]} 
-                alt={`${creatorName} editorial`}
-                className="w-full h-full object-cover object-center filter brightness-95"
-              />
-              <div className="absolute inset-0 bg-black/10" />
-            </div>
-          </div>
-          {/* Subtle Grain & Tone Overlay */}
-          <div className="absolute inset-0 bg-[#581c87]/10 mix-blend-multiply pointer-events-none" />
-        </div>
-
-        {/* Floating Circular Price Sticker Badge ($225 in Reference Image) */}
-        <div className="absolute top-12 left-6 sm:top-16 sm:left-12 z-30">
-          <div 
-            onClick={() => scrollToSection('packages-section')}
-            className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-white border border-[#581c87]/20 shadow-2xl flex flex-col items-center justify-center cursor-pointer hover:scale-105 transition-transform duration-300 group"
-          >
-            <span className="text-xl sm:text-2xl font-serif text-[#2b0938] font-bold tracking-tight group-hover:text-[#6b21a8] transition-colors">
-              {startingRate}
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#07070d]/85 backdrop-blur-xl border-b border-white/5 transition-all">
+        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+          
+          {/* Brand Logo: </> CodeCraft / Name */}
+          <Link to="/" className="flex items-center space-x-2 text-white font-bold text-lg tracking-tight group">
+            <span className="text-indigo-400 font-mono text-xl font-extrabold group-hover:scale-110 transition-transform">
+              &lt;/&gt;
             </span>
-            <span className="text-[9px] font-sans font-semibold uppercase tracking-widest text-[#6b21a8] mt-0.5">
-              FROM / RATE
-            </span>
-          </div>
-        </div>
+            <span className="tracking-tight">{creatorName}</span>
+          </Link>
 
-        {/* Top Header Row: Slogan & Location & Hamburger Menu */}
-        <header className="relative z-20 w-full px-6 sm:px-12 pt-8 sm:pt-10 flex items-start justify-between">
-          {/* Top Left Tagline / Statement */}
-          <div className="max-w-xs sm:max-w-sm pl-28 sm:pl-32">
-            <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-white drop-shadow-md leading-relaxed font-sans">
-              {portfolio.tagline ? portfolio.tagline.toUpperCase() : 'CREATE DROOL-WORTHY RESULTS THAT WILL TRANSFORM YOUR BUSINESS FOR BETTER'}
-            </p>
+          {/* Desktop Nav Links */}
+          <div className="hidden md:flex items-center space-x-8 text-sm font-medium text-gray-400">
+            <button onClick={() => scrollToSection('hero')} className="hover:text-white transition-colors">
+              Home
+            </button>
+            <button onClick={() => scrollToSection('about')} className="hover:text-white transition-colors">
+              About
+            </button>
+            <button onClick={() => scrollToSection('skills')} className="hover:text-white transition-colors">
+              Skills
+            </button>
+            <button onClick={() => scrollToSection('projects')} className="hover:text-white transition-colors">
+              Projects
+            </button>
+            <button onClick={() => scrollToSection('packages')} className="hover:text-white transition-colors">
+              Rates
+            </button>
+            <button onClick={() => scrollToSection('contact')} className="hover:text-white transition-colors">
+              Contact
+            </button>
           </div>
 
-          {/* Center / Right: Location & Hamburger */}
-          <div className="flex items-center space-x-6">
-            <span className="hidden sm:inline-block text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-white/90 drop-shadow-md font-sans">
-              BASED IN {locationText.toUpperCase()}
-            </span>
+          {/* Hire Me CTA Button */}
+          <div className="flex items-center space-x-4">
+            <button 
+              onClick={() => scrollToSection('contact')}
+              className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full text-xs font-semibold tracking-wide transition-all shadow-lg shadow-indigo-600/30 hover:shadow-indigo-500/50 flex items-center"
+            >
+              <span>Hire Me</span>
+              <ArrowUpRight className="w-3.5 h-3.5 ml-1" />
+            </button>
 
+            {/* Mobile Hamburger Menu Toggle */}
             <button 
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md border border-white/40 flex items-center justify-center text-white hover:bg-white/30 transition-colors shadow-lg"
-              title="Menu"
+              className="md:hidden text-gray-400 hover:text-white p-2"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
-        </header>
-
-        {/* Mobile Navigation Dropdown */}
-        {mobileMenuOpen && (
-          <div className="absolute top-24 right-6 sm:right-12 z-40 bg-white/95 backdrop-blur-xl border border-[#581c87]/15 rounded-2xl p-5 shadow-2xl w-60 space-y-3 font-sans text-xs">
-            <div className="text-[10px] font-bold uppercase tracking-widest text-[#6b21a8] pb-1 border-b border-[#581c87]/10">
-              Quick Navigation
-            </div>
-            <button 
-              onClick={() => scrollToSection('creativity-section')}
-              className="block w-full text-left py-1.5 font-semibold text-[#2b0938] hover:text-[#7e14ff]"
-            >
-              About & Story
-            </button>
-            <button 
-              onClick={() => scrollToSection('polaroid-section')}
-              className="block w-full text-left py-1.5 font-semibold text-[#2b0938] hover:text-[#7e14ff]"
-            >
-              What We Do
-            </button>
-            <button 
-              onClick={() => scrollToSection('stats-section')}
-              className="block w-full text-left py-1.5 font-semibold text-[#2b0938] hover:text-[#7e14ff]"
-            >
-              Audience & Reach
-            </button>
-            <button 
-              onClick={() => scrollToSection('works-section')}
-              className="block w-full text-left py-1.5 font-semibold text-[#2b0938] hover:text-[#7e14ff]"
-            >
-              Featured Works
-            </button>
-            <button 
-              onClick={() => scrollToSection('packages-section')}
-              className="block w-full text-left py-1.5 font-semibold text-[#2b0938] hover:text-[#7e14ff]"
-            >
-              Sponsorship Packages
-            </button>
-            <button 
-              onClick={() => scrollToSection('inquiry-section')}
-              className="block w-full text-left py-2 px-3 bg-[#581c87] text-white rounded-xl font-bold uppercase tracking-wider text-[11px] text-center"
-            >
-              Book Creator
-            </button>
-          </div>
-        )}
-
-        {/* Monumental Script Creator Title (Matches "Cherie" in Reference Image) */}
-        <div className="relative z-20 w-full px-6 sm:px-12 pb-12 sm:pb-16 flex flex-col items-center sm:items-start select-none">
-          <div className="relative max-w-full">
-            <h1 
-              className="text-7xl sm:text-9xl md:text-[12rem] lg:text-[14rem] text-white italic tracking-tight leading-none drop-shadow-[0_15px_30px_rgba(0,0,0,0.45)]"
-              style={{ 
-                fontFamily: "'Pinyon Script', 'Alex Brush', cursive",
-                transform: 'rotate(-4deg)',
-                transformOrigin: 'bottom left'
-              }}
-            >
-              {firstName}
-            </h1>
-          </div>
-          
-          <div className="flex items-center space-x-3 text-white/90 drop-shadow-md text-xs sm:text-sm font-sans font-semibold tracking-wider uppercase mt-2 sm:mt-0">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#a855f7]" />
-            <span>{portfolio.display_name}</span>
-            <span className="opacity-60">&bull;</span>
-            <span>{portfolio.primary_platform || 'DIGITAL'} CREATOR</span>
-          </div>
         </div>
 
+        {/* Mobile Dropdown Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden bg-[#0c0d16] border-b border-white/10 px-6 py-4 space-y-3 font-medium text-sm">
+            <button onClick={() => scrollToSection('hero')} className="block w-full text-left py-1 text-gray-300 hover:text-indigo-400">Home</button>
+            <button onClick={() => scrollToSection('about')} className="block w-full text-left py-1 text-gray-300 hover:text-indigo-400">About</button>
+            <button onClick={() => scrollToSection('skills')} className="block w-full text-left py-1 text-gray-300 hover:text-indigo-400">Skills</button>
+            <button onClick={() => scrollToSection('projects')} className="block w-full text-left py-1 text-gray-300 hover:text-indigo-400">Projects</button>
+            <button onClick={() => scrollToSection('packages')} className="block w-full text-left py-1 text-gray-300 hover:text-indigo-400">Rates</button>
+            <button onClick={() => scrollToSection('contact')} className="block w-full text-left py-1 text-gray-300 hover:text-indigo-400">Contact</button>
+          </div>
+        )}
+      </nav>
+
+      {/* =========================================================================
+          SECTION 1: HERO SECTION WITH GLOWING PURPLE AURA & FLOATING CODE CARD
+         ========================================================================= */}
+      <section id="hero" className="relative pt-32 pb-20 md:pt-40 md:pb-28 px-6 max-w-7xl mx-auto overflow-hidden">
+        
+        {/* Ambient Background Radial Glows */}
+        <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-600/15 rounded-full blur-[140px] pointer-events-none" />
+        <div className="absolute top-1/3 right-10 w-96 h-96 bg-purple-600/20 rounded-full blur-[160px] pointer-events-none" />
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+          
+          {/* Left Column: Headline, Bio & CTAs */}
+          <div className="lg:col-span-7 space-y-6">
+            
+            {/* Pill Tag */}
+            <div className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-semibold bg-indigo-950/60 text-indigo-400 border border-indigo-500/30 shadow-inner">
+              <Sparkles className="w-3.5 h-3.5 mr-1.5 text-indigo-400" />
+              <span className="uppercase tracking-wider">{roleTitle}</span>
+            </div>
+
+            {/* Main Headline */}
+            <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold text-white tracking-tight leading-[1.1]">
+              Hi, I’m{' '}
+              <span className="bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400 bg-clip-text text-transparent">
+                {firstName}
+              </span> <br />
+              I build things for the web.
+            </h1>
+
+            {/* Sub-paragraph */}
+            <p className="text-gray-400 text-base sm:text-lg max-w-xl leading-relaxed">
+              {portfolio.bio || 
+                "I'm a passionate web developer & creator specializing in building exceptional digital experiences with modern technologies."}
+            </p>
+
+            {/* Action Buttons */}
+            <div className="flex flex-wrap items-center gap-4 pt-2">
+              <button
+                onClick={() => scrollToSection('projects')}
+                className="px-7 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full text-xs font-semibold tracking-wider transition-all shadow-lg shadow-indigo-600/30 hover:shadow-indigo-500/50 flex items-center"
+              >
+                <span>View My Work</span>
+                <ArrowUpRight className="w-4 h-4 ml-1.5" />
+              </button>
+
+              <button
+                onClick={() => scrollToSection('contact')}
+                className="px-7 py-3.5 bg-white/5 hover:bg-white/10 text-white border border-white/10 hover:border-white/20 rounded-full text-xs font-semibold tracking-wider transition-all flex items-center"
+              >
+                <Download className="w-4 h-4 mr-2 text-indigo-400" />
+                <span>Download CV / Media Kit</span>
+              </button>
+            </div>
+
+            {/* Technologies I Work With Row */}
+            <div className="pt-6 space-y-3">
+              <span className="text-xs uppercase tracking-widest text-gray-500 font-semibold block">
+                Technologies & Platforms I Work With
+              </span>
+              <div className="flex items-center space-x-3.5 text-gray-400">
+                <div className="w-10 h-10 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center hover:scale-110 hover:border-orange-500/50 transition-all cursor-default" title="HTML5">
+                  <span className="font-mono text-xs font-bold text-orange-400">H5</span>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center hover:scale-110 hover:border-blue-500/50 transition-all cursor-default" title="CSS3">
+                  <span className="font-mono text-xs font-bold text-blue-400">C3</span>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center hover:scale-110 hover:border-yellow-500/50 transition-all cursor-default" title="JavaScript">
+                  <span className="font-mono text-xs font-bold text-yellow-400">JS</span>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center hover:scale-110 hover:border-blue-400/50 transition-all cursor-default" title="TypeScript">
+                  <span className="font-mono text-xs font-bold text-blue-400">TS</span>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center hover:scale-110 hover:border-cyan-400/50 transition-all cursor-default" title="React">
+                  <span className="font-mono text-xs font-bold text-cyan-400">⚛</span>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center hover:scale-110 hover:border-white/50 transition-all cursor-default" title="Next.js">
+                  <span className="font-mono text-xs font-bold text-white">N</span>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center hover:scale-110 hover:border-red-500/50 transition-all cursor-default" title="YouTube">
+                  <YouTubeIcon />
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center hover:scale-110 hover:border-pink-500/50 transition-all cursor-default" title="Instagram">
+                  <InstagramIcon />
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          {/* Right Column: Portrait in Glowing Circle + Floating Code Card */}
+          <div className="lg:col-span-5 relative flex items-center justify-center">
+            
+            {/* The Big Glowing Purple Orb */}
+            <div className="relative w-72 sm:w-96 h-72 sm:h-96 rounded-full bg-gradient-to-tr from-purple-700 via-indigo-600 to-purple-500 p-1 shadow-[0_0_90px_rgba(124,58,237,0.45)] flex items-end justify-center overflow-hidden">
+              <img 
+                src={avatarUrl} 
+                alt={creatorName}
+                className="w-full h-full object-cover object-top filter contrast-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#07070d] via-transparent to-transparent opacity-40" />
+            </div>
+
+            {/* Floating Glassmorphic Code Card (Matches Reference Image) */}
+            <div className="absolute -bottom-6 -right-2 sm:-right-6 w-60 sm:w-72 bg-[#0c0d18]/90 backdrop-blur-xl border border-white/15 rounded-2xl p-4 shadow-2xl font-mono text-[11px] space-y-2 select-none pointer-events-none transform rotate-1 hover:rotate-0 transition-transform">
+              <div className="flex items-center justify-between pb-1 border-b border-white/10 text-gray-500 text-[10px]">
+                <div className="flex items-center space-x-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-red-500/80" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-yellow-500/80" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-green-500/80" />
+                </div>
+                <span>&lt;/&gt; Code</span>
+              </div>
+              <div className="text-gray-300 leading-relaxed">
+                <span className="text-pink-400">const</span> <span className="text-yellow-300">developer</span> = {'{'}<br />
+                &nbsp;&nbsp;<span className="text-indigo-300">name</span>: <span className="text-emerald-300">"{firstName}"</span>,<br />
+                &nbsp;&nbsp;<span className="text-indigo-300">skills</span>: [<span className="text-emerald-300">"React"</span>, <span className="text-emerald-300">"Next.js"</span>],<br />
+                &nbsp;&nbsp;<span className="text-indigo-300">passion</span>: <span className="text-emerald-300">"Digital solutions"</span><br />
+                {'};'}
+              </div>
+            </div>
+
+          </div>
+
+        </div>
       </section>
 
       {/* =========================================================================
-          SECTION 2: "WHERE CREATIVITY MEETS CONVERSION" (WARM ECRU / FALCUS PURPLE)
+          SECTION 2: ABOUT ME & 2X2 METRICS GRID
          ========================================================================= */}
-      <section id="creativity-section" className="relative w-full bg-[#FAF7F2] py-24 sm:py-32 px-6 sm:px-12 md:px-20 border-b border-[#581c87]/15">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-12 sm:gap-16 items-center">
+      <section id="about" className="py-24 px-6 max-w-7xl mx-auto border-t border-white/5">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           
-          {/* Left Column: Slogan, Stylized Headline, Mission Text & Pill Button */}
-          <div className="md:col-span-7 space-y-8">
-            {/* Tagline */}
-            <span className="inline-block text-xs sm:text-sm font-bold uppercase tracking-widest text-[#6b21a8] font-sans">
-              WE DON'T DO COOKIE CUTTER
+          {/* Left Text */}
+          <div className="lg:col-span-6 space-y-6">
+            <span className="text-xs uppercase tracking-widest font-semibold text-indigo-400 bg-indigo-950/40 border border-indigo-500/30 px-3.5 py-1.5 rounded-full inline-block">
+              ABOUT ME
             </span>
-
-            {/* Stylized Editorial Headline with Script Swash */}
-            <h2 className="text-4xl sm:text-6xl lg:text-7xl font-serif text-[#581c87] leading-[1.08] tracking-tight">
-              Where <span className="font-serif italic font-normal">Creativity</span> <br />
-              Meets{' '}
-              <span 
-                className="text-5xl sm:text-7xl lg:text-8xl italic font-normal text-[#6b21a8]"
-                style={{ fontFamily: "'Pinyon Script', 'Alex Brush', cursive" }}
-              >
-                Conversion
-              </span>
+            <h2 className="text-3xl sm:text-5xl font-bold text-white tracking-tight leading-tight">
+              I’m passionate about <br />
+              <span className="text-indigo-400">creating digital solutions</span>
             </h2>
-
-            {/* Creator Story / Bio */}
-            <div className="text-sm sm:text-base text-[#4a1272]/85 leading-relaxed font-sans max-w-xl space-y-4">
-              <p>
-                {portfolio.bio || 
-                  `${creatorName} creates captivating, high-retention storytelling across digital media. Blending high-fashion aesthetics with authentic community connection, every campaign is engineered to engage audiences and generate measurable brand momentum.`}
-              </p>
-              <p className="text-xs sm:text-sm text-[#6b21a8] font-medium italic">
-                Represented in partnership with Falcus Media Creator Network.
-              </p>
-            </div>
-
-            {/* Pill Button: LEARN MORE */}
-            <div className="pt-2">
-              <button
-                onClick={() => scrollToSection('polaroid-section')}
-                className="px-8 py-3.5 bg-[#581c87] hover:bg-[#6b21a8] text-white rounded-full text-xs font-bold uppercase tracking-widest transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5 font-sans"
+            <p className="text-gray-400 text-sm sm:text-base leading-relaxed">
+              With extensive experience in modern web development and digital content creation, I help businesses, brands, and individuals bring their ideas to life through clean, scalable, and high-impact digital experiences.
+            </p>
+            <p className="text-gray-400 text-sm leading-relaxed">
+              Every project is engineered with precision, from pixel-perfect responsiveness to robust backend architectures and conversion-driven engagement.
+            </p>
+            <div>
+              <button 
+                onClick={() => scrollToSection('contact')}
+                className="px-6 py-3 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-full text-xs font-semibold tracking-wide transition-all flex items-center"
               >
-                Learn More
+                <User className="w-4 h-4 mr-2 text-indigo-400" />
+                <span>Learn More About Me</span>
               </button>
             </div>
           </div>
 
-          {/* Right Column: Framed Vertical Editorial Photo */}
-          <div className="md:col-span-5 flex justify-center">
-            <div className="relative w-full max-w-sm aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl border-4 border-white bg-[#e8e4dc] group">
-              <img 
-                src={fallbackPhotos[2]} 
-                alt={`${creatorName} editorial portrait`}
-                className="w-full h-full object-cover filter contrast-105 group-hover:scale-105 transition-transform duration-700 ease-out"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#581c87]/30 via-transparent to-transparent pointer-events-none" />
-            </div>
-          </div>
-
-        </div>
-      </section>
-
-      {/* =========================================================================
-          SECTION 3: "ELEVATING IDEAS TO NEW HEIGHTS" (RICH FALCUS ROYAL PURPLE CANVAS)
-          Surrounded by 4 Tilted Floating Polaroids
-         ========================================================================= */}
-      <section 
-        id="polaroid-section" 
-        className="relative w-full bg-[#581c87] text-white py-28 sm:py-36 px-6 sm:px-12 overflow-hidden border-b border-[#3b0764]"
-      >
-        
-        {/* Subtle Background Radial Glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[70vw] h-[70vw] bg-[#7e14ff]/25 rounded-full blur-[140px] pointer-events-none" />
-
-        <div className="relative max-w-6xl mx-auto flex flex-col items-center text-center">
-          
-          {/* Top Label in Brackets */}
-          <span className="text-xs sm:text-sm font-mono tracking-widest uppercase text-[#DDD6FE] mb-6">
-            [ WHAT WE DO ]
-          </span>
-
-          {/* Monumental Headline */}
-          <div className="my-6 max-w-3xl">
-            <h2 className="text-4xl sm:text-6xl md:text-7xl font-serif text-white tracking-tight leading-tight">
-              Elevating <br />
-              Ideas to New <br />
-              <span 
-                className="text-6xl sm:text-8xl md:text-9xl italic font-normal text-[#F3E8FF] inline-block mt-1"
-                style={{ fontFamily: "'Pinyon Script', 'Alex Brush', cursive" }}
-              >
-                Heights
-              </span>
-            </h2>
-          </div>
-
-          {/* Pill Action Button */}
-          <div className="mt-8 z-20">
-            <button
-              onClick={() => scrollToSection('packages-section')}
-              className="px-8 py-3 bg-white/10 hover:bg-white text-white hover:text-[#581c87] border border-white/30 backdrop-blur-md rounded-full text-xs font-bold uppercase tracking-widest transition-all duration-300 shadow-xl"
-            >
-              Explore Packages
-            </button>
-          </div>
-
-          {/* 4 Orbiting Polaroid Cards (Tilted at angles, straighten on hover) */}
-          <div className="w-full mt-16 sm:mt-24 grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 justify-items-center">
+          {/* Right 2x2 Stats Grid (Matches Reference Image) */}
+          <div className="lg:col-span-6 grid grid-cols-1 sm:grid-cols-2 gap-5">
             
-            {/* Polaroid 1 (Top Left): Tilted -6deg */}
-            <div 
-              onClick={() => scrollToSection('works-section')}
-              className="w-40 sm:w-56 p-3 sm:p-4 bg-white rounded-xl shadow-2xl cursor-pointer transition-all duration-500 transform -rotate-6 hover:rotate-0 hover:scale-110 hover:z-30 group"
-            >
-              <div className="w-full aspect-[4/5] bg-gray-200 rounded overflow-hidden">
-                <img 
-                  src={fallbackPhotos[1]} 
-                  alt="Production shot"
-                  className="w-full h-full object-cover filter contrast-110 group-hover:scale-105 transition-transform duration-500" 
-                />
+            {/* Stat 1: 4+ Years Experience */}
+            <div className="bg-[#0c0d18] border border-white/10 rounded-2xl p-6 flex items-start space-x-4 shadow-xl hover:border-indigo-500/40 transition-colors">
+              <div className="w-12 h-12 rounded-xl bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 flex items-center justify-center flex-shrink-0">
+                <Calendar className="w-6 h-6" />
               </div>
-              <div className="pt-3 pb-1 text-center font-serif text-[11px] sm:text-xs text-[#2b0938] font-bold tracking-wider uppercase">
-                Content Production
+              <div>
+                <div className="text-3xl font-extrabold text-white">4+</div>
+                <div className="text-xs text-gray-400 mt-1 uppercase tracking-wider font-semibold">Years Experience</div>
               </div>
             </div>
 
-            {/* Polaroid 2 (Top Right): Tilted +6deg */}
-            <div 
-              onClick={() => scrollToSection('works-section')}
-              className="w-40 sm:w-56 p-3 sm:p-4 bg-white rounded-xl shadow-2xl cursor-pointer transition-all duration-500 transform rotate-6 hover:rotate-0 hover:scale-110 hover:z-30 group"
-            >
-              <div className="w-full aspect-[4/5] bg-gray-200 rounded overflow-hidden">
-                <img 
-                  src={fallbackPhotos[3]} 
-                  alt="Campaign portrait"
-                  className="w-full h-full object-cover filter contrast-110 group-hover:scale-105 transition-transform duration-500" 
-                />
+            {/* Stat 2: 50+ Projects Completed */}
+            <div className="bg-[#0c0d18] border border-white/10 rounded-2xl p-6 flex items-start space-x-4 shadow-xl hover:border-indigo-500/40 transition-colors">
+              <div className="w-12 h-12 rounded-xl bg-purple-600/20 text-purple-400 border border-purple-500/30 flex items-center justify-center flex-shrink-0">
+                <Code2 className="w-6 h-6" />
               </div>
-              <div className="pt-3 pb-1 text-center font-serif text-[11px] sm:text-xs text-[#2b0938] font-bold tracking-wider uppercase">
-                Brand Integration
+              <div>
+                <div className="text-3xl font-extrabold text-white">50+</div>
+                <div className="text-xs text-gray-400 mt-1 uppercase tracking-wider font-semibold">Projects Completed</div>
               </div>
             </div>
 
-            {/* Polaroid 3 (Bottom Left): Tilted -3deg */}
-            <div 
-              onClick={() => scrollToSection('works-section')}
-              className="w-40 sm:w-56 p-3 sm:p-4 bg-white rounded-xl shadow-2xl cursor-pointer transition-all duration-500 transform -rotate-3 hover:rotate-0 hover:scale-110 hover:z-30 group"
-            >
-              <div className="w-full aspect-[4/5] bg-gray-200 rounded overflow-hidden">
-                <img 
-                  src={fallbackPhotos[0]} 
-                  alt="Studio shot"
-                  className="w-full h-full object-cover filter contrast-110 group-hover:scale-105 transition-transform duration-500" 
-                />
+            {/* Stat 3: 30+ Happy Clients */}
+            <div className="bg-[#0c0d18] border border-white/10 rounded-2xl p-6 flex items-start space-x-4 shadow-xl hover:border-indigo-500/40 transition-colors">
+              <div className="w-12 h-12 rounded-xl bg-cyan-600/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center flex-shrink-0">
+                <Smile className="w-6 h-6" />
               </div>
-              <div className="pt-3 pb-1 text-center font-serif text-[11px] sm:text-xs text-[#2b0938] font-bold tracking-wider uppercase">
-                Creative Direction
+              <div>
+                <div className="text-3xl font-extrabold text-white">
+                  {portfolio.follower_count > 0 ? `${(portfolio.follower_count).toLocaleString()}+` : '30+'}
+                </div>
+                <div className="text-xs text-gray-400 mt-1 uppercase tracking-wider font-semibold">
+                  {portfolio.follower_count > 0 ? 'Audience Reach' : 'Happy Clients'}
+                </div>
               </div>
             </div>
 
-            {/* Polaroid 4 (Bottom Right): Tilted +8deg */}
-            <div 
-              onClick={() => scrollToSection('works-section')}
-              className="w-40 sm:w-56 p-3 sm:p-4 bg-white rounded-xl shadow-2xl cursor-pointer transition-all duration-500 transform rotate-8 hover:rotate-0 hover:scale-110 hover:z-30 group"
-            >
-              <div className="w-full aspect-[4/5] bg-gray-200 rounded overflow-hidden">
-                <img 
-                  src={fallbackPhotos[4]} 
-                  alt="Editorial lifestyle"
-                  className="w-full h-full object-cover filter contrast-110 group-hover:scale-105 transition-transform duration-500" 
-                />
+            {/* Stat 4: 100% Satisfaction */}
+            <div className="bg-[#0c0d18] border border-white/10 rounded-2xl p-6 flex items-start space-x-4 shadow-xl hover:border-indigo-500/40 transition-colors">
+              <div className="w-12 h-12 rounded-xl bg-amber-600/20 text-amber-400 border border-amber-500/30 flex items-center justify-center flex-shrink-0">
+                <Trophy className="w-6 h-6" />
               </div>
-              <div className="pt-3 pb-1 text-center font-serif text-[11px] sm:text-xs text-[#2b0938] font-bold tracking-wider uppercase">
-                Community Reach
+              <div>
+                <div className="text-3xl font-extrabold text-white">100%</div>
+                <div className="text-xs text-gray-400 mt-1 uppercase tracking-wider font-semibold">Client Satisfaction</div>
               </div>
             </div>
 
@@ -546,208 +532,131 @@ export default function PublicPortfolio() {
       </section>
 
       {/* =========================================================================
-          SECTION 4: STUDIO / FALCUS MEDIA ACCENT STRIP & MARQUEE TICKER
+          SECTION 3: TECHNOLOGIES & SKILLS METERS (3-COLUMN PROGRESS GRID)
          ========================================================================= */}
-      <section className="w-full bg-[#1e0729] text-white border-y border-white/10 py-6 overflow-hidden">
-        <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
-          
-          {/* Tilted Yellow Badge & Brand Title */}
-          <div className="flex items-center space-x-3">
-            <span 
-              className="px-3 py-1 bg-[#FACC15] text-[#1e0729] rounded-full text-[10px] font-bold uppercase tracking-wider shadow"
-              style={{ transform: 'rotate(-5deg)' }}
-            >
-              Verified Talent
-            </span>
-            <span className="font-serif text-xl sm:text-2xl italic tracking-wide text-white">
-              Falcus Media Agency
-            </span>
-          </div>
-
-          {/* Marquee Ticker */}
-          <div className="text-[11px] font-mono tracking-widest uppercase text-white/70 overflow-hidden whitespace-nowrap">
-            <span>DIFFERENTLY THAN THE REST ★ WE DO THINGS DIFFERENTLY ★ FALCUS MEDIA CREATOR ★ HIGH-IMPACT SPONSORSHIPS ★</span>
-          </div>
-        </div>
-      </section>
-
-      {/* =========================================================================
-          SECTION 5: AUDIENCE STATS & SOCIAL CHANNELS (EDITORIAL HIGH-FASHION)
-         ========================================================================= */}
-      <section id="stats-section" className="max-w-6xl mx-auto px-6 sm:px-12 py-24 border-b border-[#581c87]/15">
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 pb-4 border-b border-[#581c87]/20">
-          <div>
-            <span className="font-mono text-xs uppercase tracking-widest text-[#6b21a8] block mb-1">
-              // AUDIENCE ANALYTICS & REACH
-            </span>
-            <h2 className="text-3xl sm:text-5xl font-serif text-[#581c87] tracking-tight">
-              Verified Social Channels
-            </h2>
-          </div>
-          <p className="font-sans text-xs text-[#6b21a8] mt-2 md:mt-0 uppercase tracking-wider font-semibold">
-            Aggregated Live Network Reach
+      <section id="skills" className="py-24 px-6 max-w-7xl mx-auto border-t border-white/5">
+        <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
+          <span className="text-xs uppercase tracking-widest font-semibold text-indigo-400 bg-indigo-950/40 border border-indigo-500/30 px-3.5 py-1.5 rounded-full inline-block">
+            MY SKILLS
+          </span>
+          <h2 className="text-3xl sm:text-5xl font-bold text-white tracking-tight">
+            Technologies I Master
+          </h2>
+          <p className="text-gray-400 text-sm">
+            Core stack and platform capabilities honed through production deployments and campaign workflows.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {/* Main Total Audience Card */}
-          <div className="md:col-span-1 bg-white border border-[#581c87]/15 rounded-3xl p-8 flex flex-col justify-between shadow-xl">
-            <div>
-              <span className="text-[10px] font-mono uppercase tracking-widest text-[#6b21a8] font-bold block mb-2">
-                TOTAL REACH
-              </span>
-              <div className="text-4xl sm:text-5xl font-serif font-bold text-[#581c87]">
-                {portfolio.follower_count > 0 ? (portfolio.follower_count).toLocaleString() : '50,000+'}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {skills.map((skill, index) => (
+            <div 
+              key={index}
+              className="bg-[#0c0d18] border border-white/10 rounded-2xl p-6 shadow-xl space-y-4 hover:border-indigo-500/30 transition-all"
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-semibold text-sm text-white">{skill.name}</span>
+                <span className="font-mono text-xs font-bold text-indigo-400">{skill.pct}%</span>
               </div>
-              <p className="text-xs text-gray-500 mt-2 font-sans">
-                Active engaged audience across all primary platforms.
-              </p>
-            </div>
-            <div className="mt-8 pt-4 border-t border-[#581c87]/10 flex items-center justify-between text-xs font-mono text-[#581c87]">
-              <span>TIER</span>
-              <span className="font-bold uppercase">{portfolio.creator_tier || 'FLAGSHIP'}</span>
-            </div>
-          </div>
-
-          {/* Social Links Cards */}
-          <div className="md:col-span-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
-            {socialLinks.length > 0 ? (
-              socialLinks.map((link: any, idx: number) => {
-                const platform = (link.platform || 'Channel').toLowerCase();
-                return (
-                  <a
-                    key={idx}
-                    href={link.url || '#'}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="bg-white border border-[#581c87]/15 rounded-3xl p-6 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="w-10 h-10 rounded-2xl bg-[#FAF7F2] border border-[#581c87]/10 flex items-center justify-center text-[#581c87] group-hover:bg-[#581c87] group-hover:text-white transition-colors">
-                        {platform.includes('youtube') ? <YouTubeIcon /> :
-                         platform.includes('instagram') ? <InstagramIcon /> :
-                         platform.includes('twitter') || platform.includes('x') ? <TwitterIcon /> :
-                         <Globe className="w-5 h-5" />}
-                      </div>
-                      <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-[#581c87] transition-colors" />
-                    </div>
-
-                    <div className="mt-6">
-                      <div className="text-xs font-mono uppercase tracking-wider text-gray-500">
-                        {link.platform}
-                      </div>
-                      <div className="text-2xl font-serif font-bold text-[#581c87] mt-0.5">
-                        {link.followers > 0 ? (link.followers).toLocaleString() : 'Active'}
-                      </div>
-                      <div className="text-[11px] text-[#6b21a8] truncate mt-1">
-                        {link.handle || link.url || 'View Profile'}
-                      </div>
-                    </div>
-                  </a>
-                );
-              })
-            ) : (
-              <div className="col-span-3 bg-white border border-[#581c87]/15 rounded-3xl p-8 text-center text-gray-500">
-                <p className="font-serif italic text-sm">Channels currently being synced with Falcus Media verification.</p>
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* =========================================================================
-          SECTION 6: FEATURED PRODUCTIONS & VIDEO REEL
-         ========================================================================= */}
-      <section id="works-section" className="max-w-6xl mx-auto px-6 sm:px-12 py-24 border-b border-[#581c87]/15">
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 pb-4 border-b border-[#581c87]/20">
-          <div>
-            <span className="font-mono text-xs uppercase tracking-widest text-[#6b21a8] block mb-1">
-              // PRODUCTION SHOWCASE
-            </span>
-            <h2 className="text-3xl sm:text-5xl font-serif text-[#581c87] tracking-tight">
-              Featured Campaigns
-            </h2>
-          </div>
-          <p className="font-sans text-xs text-[#6b21a8] mt-2 md:mt-0 uppercase tracking-wider font-semibold">
-            Watch Full Campaign Deliverables
-          </p>
-        </div>
-
-        {featuredMedia.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {featuredMedia.map((media: any, idx: number) => {
-              const embed = getEmbedUrl(media.url);
-              return (
+              {/* Progress Bar Track */}
+              <div className="w-full h-2 rounded-full bg-white/5 overflow-hidden">
                 <div 
-                  key={idx}
-                  className="bg-white border border-[#581c87]/15 rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col group"
-                >
-                  <div className="relative aspect-video bg-neutral-900 overflow-hidden cursor-pointer">
+                  className={`h-full rounded-full bg-gradient-to-r ${skill.color} transition-all duration-1000`}
+                  style={{ width: `${skill.pct}%` }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* =========================================================================
+          SECTION 4: FEATURED PROJECTS / SOME OF MY RECENT WORK
+         ========================================================================= */}
+      <section id="projects" className="py-24 px-6 max-w-7xl mx-auto border-t border-white/5">
+        <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
+          <span className="text-xs uppercase tracking-widest font-semibold text-indigo-400 bg-indigo-950/40 border border-indigo-500/30 px-3.5 py-1.5 rounded-full inline-block">
+            FEATURED PROJECTS
+          </span>
+          <h2 className="text-3xl sm:text-5xl font-bold text-white tracking-tight">
+            Some of My Recent Work
+          </h2>
+          <p className="text-gray-400 text-sm">
+            Explore recent productions, full-stack builds, and brand campaigns.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {projectsToDisplay.map((project: any, idx: number) => {
+            const embed = getEmbedUrl(project.url);
+            const num = String(idx + 1).padStart(2, '0');
+            return (
+              <div 
+                key={idx}
+                className="bg-[#0c0d18] border border-white/10 rounded-3xl overflow-hidden shadow-2xl flex flex-col justify-between group hover:border-indigo-500/40 transition-all duration-300"
+              >
+                <div>
+                  {/* Image Container with Number Badge */}
+                  <div className="relative aspect-video bg-neutral-900 overflow-hidden">
                     <img 
-                      src={media.thumbnail_url || fallbackPhotos[idx % fallbackPhotos.length]} 
-                      alt={media.title}
+                      src={project.thumbnail_url || project.image || defaultProjects[idx % 3].image} 
+                      alt={project.title}
                       className="w-full h-full object-cover filter contrast-105 group-hover:scale-105 transition-transform duration-500" 
                     />
-                    <div 
-                      onClick={() => embed && setActiveVideoUrl(embed)}
-                      className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/20 transition-colors"
-                    >
-                      <div className="w-14 h-14 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform">
-                        <Play className="w-6 h-6 fill-[#581c87] text-[#581c87] ml-1" />
-                      </div>
+                    <div className="absolute top-3 left-3 px-2.5 py-1 rounded-lg bg-black/70 backdrop-blur-md text-[11px] font-mono font-bold text-indigo-400 border border-white/10">
+                      {num}
                     </div>
+                    {embed && (
+                      <div 
+                        onClick={() => setActiveVideoUrl(embed)}
+                        className="absolute inset-0 bg-black/40 flex items-center justify-center cursor-pointer group-hover:bg-black/20 transition-colors"
+                      >
+                        <div className="w-12 h-12 rounded-full bg-indigo-600/90 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                          <Play className="w-5 h-5 fill-white text-white ml-0.5" />
+                        </div>
+                      </div>
+                    )}
                   </div>
 
-                  <div className="p-6 flex-1 flex flex-col justify-between">
-                    <div>
-                      <span className="text-[10px] font-mono uppercase tracking-wider text-[#6b21a8] font-bold">
-                        {media.platform || 'Featured Work'}
-                      </span>
-                      <h3 className="font-serif font-bold text-lg text-[#2b0938] mt-1 group-hover:text-[#581c87] transition-colors line-clamp-2">
-                        {media.title || 'Official Production Campaign'}
-                      </h3>
-                      {media.views > 0 && (
-                        <p className="text-xs text-gray-500 font-mono mt-2">
-                          {(media.views).toLocaleString()} Views &bull; High Retention
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="mt-5 pt-4 border-t border-[#581c87]/10 flex items-center justify-between">
-                      <button
-                        onClick={() => embed ? setActiveVideoUrl(embed) : window.open(media.url, '_blank')}
-                        className="text-xs font-bold uppercase tracking-wider text-[#581c87] hover:text-[#7e14ff] flex items-center"
-                      >
-                        Watch Video &rarr;
-                      </button>
-                    </div>
+                  {/* Body Content */}
+                  <div className="p-6 space-y-2">
+                    <h3 className="font-bold text-lg text-white group-hover:text-indigo-400 transition-colors line-clamp-1">
+                      {project.title}
+                    </h3>
+                    <p className="text-gray-400 text-xs leading-relaxed line-clamp-3">
+                      {project.desc || project.description || "High-performance digital project delivering seamless user engagement and conversion."}
+                    </p>
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="bg-white border border-[#581c87]/15 rounded-3xl p-12 text-center text-gray-500">
-            <p className="font-serif italic text-base">Video portfolio reels are currently being curated for this creator.</p>
-          </div>
-        )}
+
+                {/* Footer Link */}
+                <div className="p-6 pt-0 flex items-center justify-between">
+                  <button
+                    onClick={() => embed ? setActiveVideoUrl(embed) : project.url && project.url !== '#' ? window.open(project.url, '_blank') : scrollToSection('contact')}
+                    className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 flex items-center"
+                  >
+                    <span>View Project</span>
+                    <ArrowUpRight className="w-3.5 h-3.5 ml-1" />
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </section>
 
       {/* =========================================================================
-          SECTION 7: SPONSORSHIP PACKAGES & RATES
+          SECTION 5: COLLABORATION PACKAGES & RATES
          ========================================================================= */}
-      <section id="packages-section" className="max-w-6xl mx-auto px-6 sm:px-12 py-24 border-b border-[#581c87]/15">
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 pb-4 border-b border-[#581c87]/20">
-          <div>
-            <span className="font-mono text-xs uppercase tracking-widest text-[#6b21a8] block mb-1">
-              // COLLABORATION TIERS
-            </span>
-            <h2 className="text-3xl sm:text-5xl font-serif text-[#581c87] tracking-tight">
-              Sponsorship Packages
-            </h2>
-          </div>
-          <p className="font-sans text-xs text-[#6b21a8] mt-2 md:mt-0 uppercase tracking-wider font-semibold">
-            Custom Deliverables & Production
+      <section id="packages" className="py-24 px-6 max-w-7xl mx-auto border-t border-white/5">
+        <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
+          <span className="text-xs uppercase tracking-widest font-semibold text-indigo-400 bg-indigo-950/40 border border-indigo-500/30 px-3.5 py-1.5 rounded-full inline-block">
+            RATES & PACKAGES
+          </span>
+          <h2 className="text-3xl sm:text-5xl font-bold text-white tracking-tight">
+            Transparent Pricing
+          </h2>
+          <p className="text-gray-400 text-sm">
+            Choose a collaboration tier or request a custom quote tailored to your timeline.
           </p>
         </div>
 
@@ -760,39 +669,39 @@ export default function PublicPortfolio() {
                   key={idx}
                   className={`rounded-3xl p-8 flex flex-col justify-between transition-all duration-300 ${
                     isPopular 
-                      ? 'bg-[#581c87] text-white shadow-2xl md:-translate-y-2' 
-                      : 'bg-white text-[#2b0938] border border-[#581c87]/15 shadow-xl hover:-translate-y-1'
+                      ? 'bg-gradient-to-b from-indigo-950/80 to-[#0c0d18] border-2 border-indigo-500 shadow-2xl shadow-indigo-500/20 md:-translate-y-2' 
+                      : 'bg-[#0c0d18] border border-white/10 shadow-xl hover:-translate-y-1'
                   }`}
                 >
                   <div>
                     {isPopular && (
-                      <span className="inline-block px-3 py-1 bg-[#FACC15] text-[#1e0729] rounded-full text-[10px] font-bold uppercase tracking-wider mb-4">
-                        Most Requested
+                      <span className="inline-block px-3 py-1 bg-indigo-600 text-white rounded-full text-[10px] font-bold uppercase tracking-wider mb-4">
+                        Most Popular
                       </span>
                     )}
-                    <h3 className="font-serif text-2xl font-bold tracking-tight">
-                      {srv.title || 'Campaign Package'}
+                    <h3 className="text-xl font-bold text-white tracking-tight">
+                      {srv.title || 'Campaign Deliverable'}
                     </h3>
                     <div className="mt-4 flex items-baseline">
-                      <span className="text-4xl font-serif font-bold">
+                      <span className="text-4xl font-extrabold text-white">
                         {srv.price ? `$${srv.price}` : 'Custom'}
                       </span>
-                      <span className={`ml-2 text-xs uppercase font-mono ${isPopular ? 'text-[#DDD6FE]' : 'text-gray-500'}`}>
+                      <span className="ml-2 text-xs uppercase font-mono text-gray-400">
                         / Deliverable
                       </span>
                     </div>
-                    <p className={`mt-4 text-xs leading-relaxed ${isPopular ? 'text-white/80' : 'text-gray-600'}`}>
-                      {srv.description || 'Full production, editing, creator review, and promotional post across official channels.'}
+                    <p className="mt-4 text-xs text-gray-400 leading-relaxed">
+                      {srv.description || 'Full development/content delivery, testing, revisions, and launch support.'}
                     </p>
                   </div>
 
-                  <div className="mt-8 pt-6 border-t border-current/15">
+                  <div className="mt-8 pt-6 border-t border-white/10">
                     <button
-                      onClick={() => scrollToSection('inquiry-section', srv.title)}
-                      className={`w-full py-3.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${
+                      onClick={() => scrollToSection('contact', srv.title)}
+                      className={`w-full py-3.5 rounded-full text-xs font-semibold tracking-wider transition-all ${
                         isPopular
-                          ? 'bg-white text-[#581c87] hover:bg-[#F3E8FF] shadow-lg'
-                          : 'bg-[#581c87] text-white hover:bg-[#6b21a8] shadow-md'
+                          ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30'
+                          : 'bg-white/10 hover:bg-white/20 text-white'
                       }`}
                     >
                       Select Package &rarr;
@@ -802,14 +711,14 @@ export default function PublicPortfolio() {
               );
             })
           ) : (
-            <div className="col-span-3 bg-white border border-[#581c87]/15 rounded-3xl p-10 text-center">
-              <h3 className="font-serif text-2xl text-[#581c87] font-bold">Custom Brand Partnerships</h3>
-              <p className="text-sm text-gray-600 mt-2 max-w-md mx-auto">
-                This creator accepts custom integrated campaigns, dedicated videos, and ambassador contracts. Submit a brief below.
+            <div className="col-span-3 bg-[#0c0d18] border border-white/10 rounded-3xl p-10 text-center">
+              <h3 className="text-2xl font-bold text-white">Custom Project Engagements</h3>
+              <p className="text-sm text-gray-400 mt-2 max-w-md mx-auto">
+                Currently booking select development contracts and brand partnerships. Get in touch below with your project requirements.
               </p>
               <button
-                onClick={() => scrollToSection('inquiry-section')}
-                className="mt-6 px-8 py-3 bg-[#581c87] text-white rounded-full text-xs font-bold uppercase tracking-wider"
+                onClick={() => scrollToSection('contact')}
+                className="mt-6 px-8 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full text-xs font-semibold tracking-wider transition-all"
               >
                 Inquire for Rates
               </button>
@@ -819,159 +728,272 @@ export default function PublicPortfolio() {
       </section>
 
       {/* =========================================================================
-          SECTION 8: DIRECT BRAND BOOKING TERMINAL
+          SECTION 6: BOTTOM 3-COLUMN ROW (CTA + TESTIMONIAL + CONTACT)
+          Matches Reference Bottom Bar Exactly
          ========================================================================= */}
-      <section id="inquiry-section" className="max-w-4xl mx-auto px-6 sm:px-12 py-24">
-        <div className="bg-white border border-[#581c87]/20 rounded-3xl p-8 sm:p-12 shadow-2xl">
+      <section id="contact" className="py-24 px-6 max-w-7xl mx-auto border-t border-white/5">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          <div className="text-center max-w-xl mx-auto mb-10">
-            <span className="text-xs font-mono font-bold uppercase tracking-widest text-[#6b21a8]">
-              OFFICIAL BOOKING INQUIRY
+          {/* Card 1: LET'S WORK TOGETHER */}
+          <div className="bg-[#0c0d18] border border-white/10 rounded-3xl p-8 flex flex-col justify-between shadow-xl">
+            <div className="space-y-4">
+              <span className="text-[10px] font-mono uppercase tracking-widest text-indigo-400 font-bold block">
+                LET'S WORK TOGETHER
+              </span>
+              <h3 className="text-2xl font-bold text-white tracking-tight">
+                Have a project in mind?
+              </h3>
+              <p className="text-xs text-gray-400 leading-relaxed">
+                I'm always open to discussing new projects, creative ideas, and partnership opportunities. Let's create something amazing together!
+              </p>
+            </div>
+
+            <div className="mt-8">
+              <button 
+                onClick={() => scrollToSection('inquiry-form')}
+                className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full text-xs font-semibold tracking-wider transition-all shadow-lg shadow-indigo-600/30 flex items-center justify-center space-x-1.5"
+              >
+                <span>Get In Touch</span>
+                <ArrowUpRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Card 2: TESTIMONIAL */}
+          <div className="bg-[#0c0d18] border border-white/10 rounded-3xl p-8 flex flex-col justify-between shadow-xl">
+            <div className="space-y-4">
+              <div className="w-10 h-10 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center font-serif text-2xl font-bold">
+                “
+              </div>
+              <p className="text-xs sm:text-sm text-gray-300 italic leading-relaxed">
+                "{firstName} is an exceptional developer and creator who delivers high-quality work on time. Attention to detail and problem-solving skills are outstanding."
+              </p>
+            </div>
+
+            <div className="mt-8 flex items-center space-x-3 pt-4 border-t border-white/10">
+              <img 
+                src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80" 
+                alt="Sarah Johnson" 
+                className="w-10 h-10 rounded-full object-cover border border-white/20"
+              />
+              <div>
+                <div className="text-xs font-bold text-white">Sarah Johnson</div>
+                <div className="text-[10px] text-gray-400 uppercase tracking-wider">CEO, TechStart</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 3: FOLLOW ME & DIRECT CONTACT */}
+          <div className="bg-[#0c0d18] border border-white/10 rounded-3xl p-8 flex flex-col justify-between shadow-xl">
+            <div>
+              <span className="text-[10px] font-mono uppercase tracking-widest text-indigo-400 font-bold block mb-4">
+                FOLLOW ME
+              </span>
+              
+              {/* Social Icons Row */}
+              <div className="flex flex-wrap items-center gap-2.5 text-gray-400 mb-6">
+                {socialLinks.length > 0 ? (
+                  socialLinks.map((s: any, idx: number) => {
+                    const platform = (s.platform || '').toLowerCase();
+                    return (
+                      <a 
+                        key={idx} 
+                        href={s.url || '#'} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="w-10 h-10 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center hover:text-white hover:border-indigo-400/50 transition-all" 
+                        title={s.platform || 'Social Link'}
+                      >
+                        {platform.includes('youtube') ? <YouTubeIcon /> :
+                         platform.includes('instagram') ? <InstagramIcon /> :
+                         platform.includes('twitter') || platform.includes('x') ? <TwitterIcon /> :
+                         platform.includes('linkedin') ? <LinkedinIcon /> :
+                         platform.includes('github') ? <GithubIcon /> :
+                         <span className="font-mono text-xs font-bold">{s.platform?.charAt(0) || '✦'}</span>}
+                      </a>
+                    );
+                  })
+                ) : (
+                  <>
+                    <a href={portfolio.github_url || "#"} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center hover:text-white hover:border-white/30 transition-all" title="GitHub">
+                      <GithubIcon />
+                    </a>
+                    <a href={portfolio.linkedin_url || "#"} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center hover:text-white hover:border-white/30 transition-all" title="LinkedIn">
+                      <LinkedinIcon />
+                    </a>
+                    <a href={portfolio.twitter_url || "#"} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center hover:text-white hover:border-white/30 transition-all" title="Twitter / X">
+                      <TwitterIcon />
+                    </a>
+                    <a href={portfolio.instagram_url || "#"} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center hover:text-white hover:border-white/30 transition-all" title="Instagram">
+                      <InstagramIcon />
+                    </a>
+                  </>
+                )}
+              </div>
+
+              {/* Direct Info */}
+              <div className="space-y-3 text-xs text-gray-400">
+                <div className="flex items-center space-x-3">
+                  <Mail className="w-4 h-4 text-indigo-400" />
+                  <span className="text-gray-300">{portfolio.contact_email || 'hello@falcusmedia.com'}</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <Phone className="w-4 h-4 text-indigo-400" />
+                  <span className="text-gray-300">{portfolio.phone_number || '+1 (555) 123-4567'}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-8 pt-4 border-t border-white/10 flex items-center justify-between text-[11px] font-mono text-gray-500">
+              <span>STATUS</span>
+              <span className="text-emerald-400 font-semibold flex items-center">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse mr-1.5" />
+                Available for hire
+              </span>
+            </div>
+          </div>
+
+        </div>
+
+        {/* Direct Campaign Inquiry Form Container */}
+        <div id="inquiry-form" className="mt-16 bg-[#0c0d18] border border-white/10 rounded-3xl p-8 sm:p-12 shadow-2xl">
+          <div className="text-center max-w-xl mx-auto mb-10 space-y-2">
+            <span className="text-xs font-mono font-bold uppercase tracking-widest text-indigo-400">
+              BOOKING & CONTACT INQUIRY
             </span>
-            <h2 className="text-3xl sm:text-5xl font-serif text-[#581c87] mt-2">
-              Work with {firstName}
-            </h2>
-            <p className="text-xs sm:text-sm text-gray-600 mt-3 font-sans leading-relaxed">
-              Submit your brand campaign brief directly to the creator and Falcus Media agency management. We typically respond within 24 business hours.
+            <h3 className="text-2xl sm:text-4xl font-bold text-white">
+              Send a Message to {firstName}
+            </h3>
+            <p className="text-xs sm:text-sm text-gray-400">
+              Submit your project specifications or sponsorship brief directly to {firstName}. Responses are typically sent within 24 hours.
             </p>
           </div>
 
           {inquirySuccess && (
-            <div className="mb-8 p-6 rounded-2xl bg-green-50 border border-green-200 text-green-800 text-center space-y-2">
-              <CheckCircle className="w-8 h-8 text-green-600 mx-auto" />
-              <h4 className="font-serif font-bold text-lg">Proposal Submitted Successfully!</h4>
-              <p className="text-xs text-green-700">
-                Thank you for your inquiry. Our talent team and {firstName} will review your campaign brief and be in touch shortly.
+            <div className="mb-8 p-6 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-center space-y-2">
+              <CheckCircle className="w-8 h-8 text-emerald-400 mx-auto" />
+              <h4 className="font-bold text-lg text-white">Inquiry Sent Successfully!</h4>
+              <p className="text-xs text-emerald-300">
+                Thank you! Your project details have been delivered to {firstName} and management.
               </p>
             </div>
           )}
 
           {inquiryError && (
-            <div className="mb-8 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs text-center font-medium">
+            <div className="mb-8 p-4 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs text-center font-medium">
               {inquiryError}
             </div>
           )}
 
-          <form onSubmit={handleInquirySubmit} className="space-y-6">
+          <form onSubmit={handleInquirySubmit} className="space-y-6 max-w-3xl mx-auto">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div>
-                <label className="block text-xs font-mono uppercase tracking-wider text-[#581c87] font-bold mb-2">
-                  Brand / Organization *
+                <label className="block text-xs font-mono uppercase tracking-wider text-gray-300 font-semibold mb-2">
+                  Your Name / Organization *
                 </label>
                 <input 
                   type="text" 
                   required
-                  placeholder="e.g. Acme Studio"
+                  placeholder="e.g. Acme Corp"
                   value={brandName}
                   onChange={(e) => setBrandName(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-[#581c87]/20 rounded-2xl px-4 py-3 text-sm text-[#2b0938] focus:outline-none focus:border-[#7e14ff] transition-colors"
+                  className="w-full bg-black/40 border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-mono uppercase tracking-wider text-[#581c87] font-bold mb-2">
+                <label className="block text-xs font-mono uppercase tracking-wider text-gray-300 font-semibold mb-2">
                   Contact Person *
                 </label>
                 <input 
                   type="text" 
                   required
-                  placeholder="e.g. Sarah Jenkins"
+                  placeholder="e.g. John Doe"
                   value={contactName}
                   onChange={(e) => setContactName(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-[#581c87]/20 rounded-2xl px-4 py-3 text-sm text-[#2b0938] focus:outline-none focus:border-[#7e14ff] transition-colors"
+                  className="w-full bg-black/40 border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div>
-                <label className="block text-xs font-mono uppercase tracking-wider text-[#581c87] font-bold mb-2">
-                  Work Email *
+                <label className="block text-xs font-mono uppercase tracking-wider text-gray-300 font-semibold mb-2">
+                  Email Address *
                 </label>
                 <input 
                   type="email" 
                   required
-                  placeholder="sarah@brand.com"
+                  placeholder="john@example.com"
                   value={contactEmail}
                   onChange={(e) => setContactEmail(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-[#581c87]/20 rounded-2xl px-4 py-3 text-sm text-[#2b0938] focus:outline-none focus:border-[#7e14ff] transition-colors"
+                  className="w-full bg-black/40 border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-mono uppercase tracking-wider text-[#581c87] font-bold mb-2">
+                <label className="block text-xs font-mono uppercase tracking-wider text-gray-300 font-semibold mb-2">
                   Estimated Budget *
                 </label>
                 <select
                   value={budget}
                   onChange={(e) => setBudget(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-[#581c87]/20 rounded-2xl px-4 py-3 text-sm text-[#2b0938] focus:outline-none focus:border-[#7e14ff] transition-colors"
+                  className="w-full bg-black/40 border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors"
                 >
                   <option value="Under $500">Under $500</option>
                   <option value="$500 - $1,500">$500 - $1,500</option>
                   <option value="$1,500 - $5,000">$1,500 - $5,000</option>
-                  <option value="$5,000+">$5,000+ (Flagship Campaign)</option>
+                  <option value="$5,000+">$5,000+ (Flagship Deliverable)</option>
                   <option value="Flexible / Open to Quote">Flexible / Open to Quote</option>
                 </select>
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-mono uppercase tracking-wider text-[#581c87] font-bold mb-2">
-                Campaign Brief & Deliverable Requirements *
+              <label className="block text-xs font-mono uppercase tracking-wider text-gray-300 font-semibold mb-2">
+                Project Overview & Requirements *
               </label>
               <textarea 
                 required
                 rows={4}
-                placeholder="Tell us about the product/brand, desired deliverables (YouTube integration, TikTok, Reel), target launch timeline, and key campaign objectives..."
+                placeholder="Describe your project, deliverable goals, timeline, and any key technical or creative requirements..."
                 value={campaignDetails}
                 onChange={(e) => setCampaignDetails(e.target.value)}
-                className="w-full bg-[#FAF7F2] border border-[#581c87]/20 rounded-2xl p-4 text-sm text-[#2b0938] focus:outline-none focus:border-[#7e14ff] transition-colors"
+                className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors"
               />
             </div>
 
             <button
               type="submit"
               disabled={submittingInquiry}
-              className="w-full py-4 bg-[#581c87] hover:bg-[#6b21a8] disabled:opacity-50 text-white rounded-full text-xs font-bold uppercase tracking-widest transition-all duration-300 shadow-xl flex items-center justify-center space-x-2"
+              className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-full text-xs font-semibold tracking-wider transition-all shadow-xl shadow-indigo-600/30 flex items-center justify-center space-x-2"
             >
               <Send className="w-4 h-4" />
-              <span>{submittingInquiry ? 'Sending Proposal...' : 'Send Campaign Inquiry'}</span>
+              <span>{submittingInquiry ? 'Sending...' : 'Send Message'}</span>
             </button>
           </form>
-
         </div>
       </section>
 
       {/* =========================================================================
-          FOOTER: FALCUS MEDIA AGENCY BRANDING
+          FOOTER (Matches CodeCraft Footer: © 2026 Alex. Made with ❤️ by Alex / Falcus)
          ========================================================================= */}
-      <footer className="w-full bg-[#1e0729] text-white py-12 px-6 sm:px-12 border-t border-white/10 font-sans">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
-          <div className="flex items-center space-x-3">
-            <img src="/favicon.jpg" alt="Logo" className="w-8 h-8 rounded-lg shadow" />
-            <div>
-              <span className="font-serif italic text-lg text-white">Falcus Media Agency</span>
-              <span className="text-[10px] font-mono uppercase tracking-widest text-[#a855f7] block">
-                Official Creator Representation
-              </span>
-            </div>
+      <footer className="w-full bg-[#050509] border-t border-white/5 py-8 px-6 text-xs text-gray-500 font-sans">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div>
+            &copy; {new Date().getFullYear()} {creatorName}. All rights reserved.
           </div>
-
-          <div className="text-center sm:text-right text-xs text-white/60 space-y-1">
-            <p>&copy; {new Date().getFullYear()} Falcus Media Ltd. All rights reserved.</p>
-            <p className="text-[11px] font-mono text-white/40">
-              Verified Creator Media Kit &bull; {portfolio.display_name}
-            </p>
+          <div>
+            Made with <span className="text-rose-500">❤️</span> for <span className="text-gray-300">Falcus Media Agency</span>
           </div>
         </div>
       </footer>
 
       {/* =========================================================================
-          VIDEO PLAYER MODAL
+          VIDEO / PROJECT PREVIEW MODAL
          ========================================================================= */}
       {activeVideoUrl && (
-        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
           <div className="relative w-full max-w-4xl bg-black rounded-3xl overflow-hidden shadow-2xl border border-white/20">
             <button 
               onClick={() => setActiveVideoUrl(null)}
@@ -982,7 +1004,7 @@ export default function PublicPortfolio() {
             <div className="aspect-video w-full">
               <iframe 
                 src={activeVideoUrl}
-                title="Featured Video Reel"
+                title="Project Video Preview"
                 className="w-full h-full border-0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
