@@ -1043,4 +1043,74 @@ router.post('/creators/:id/reset-password', async (req, res) => {
   }
 });
 
+// Reset Any User Password by Email / Username / Identifier (Admin action)
+router.post('/reset-password-by-email', async (req, res) => {
+  const { email, newPassword } = req.body;
+
+  if (!email || !newPassword || newPassword.length < 6) {
+    return res.status(400).json({ error: 'Valid email and password (min 6 chars) required' });
+  }
+
+  const cleanEmail = email.trim();
+
+  try {
+    const hashedPassword = await argon2.hash(newPassword);
+    let updated = false;
+
+    // 1. Check and update auth_users + auth_accounts
+    const { rows: users } = await pool.query(
+      'SELECT id FROM auth_users WHERE LOWER(TRIM(email)) = LOWER($1)',
+      [cleanEmail]
+    );
+    if (users.length > 0) {
+      const userId = users[0].id;
+      const { rows: existing } = await pool.query(
+        'SELECT id FROM auth_accounts WHERE "userId"::text = $1::text OR "providerAccountId"::text = $1::text',
+        [String(userId)]
+      );
+      if (existing.length > 0) {
+        await pool.query(
+          'UPDATE auth_accounts SET password = $1 WHERE "userId"::text = $2::text OR "providerAccountId"::text = $2::text',
+          [hashedPassword, String(userId)]
+        );
+      } else {
+        await pool.query(
+          `INSERT INTO auth_accounts ("userId", type, provider, "providerAccountId", password)
+           VALUES ($1, 'credentials', 'credentials', $1::text, $2)`,
+          [userId, hashedPassword]
+        );
+      }
+      updated = true;
+    }
+
+    // 2. Check and update admin_users
+    try {
+      const adminRes = await pool.query(
+        'UPDATE admin_users SET password = $1 WHERE LOWER(TRIM(email)) = LOWER($2) OR LOWER(TRIM(username)) = LOWER($2) RETURNING id',
+        [hashedPassword, cleanEmail]
+      );
+      if (adminRes.rows.length > 0) updated = true;
+    } catch (e) {}
+
+    // 3. Check and update partners
+    try {
+      const partnerRes = await pool.query(
+        'UPDATE partners SET password = $1 WHERE LOWER(TRIM(email)) = LOWER($2) OR LOWER(TRIM(referral_code)) = LOWER($2) RETURNING id',
+        [hashedPassword, cleanEmail]
+      );
+      if (partnerRes.rows.length > 0) updated = true;
+    } catch (e) {}
+
+    if (!updated) {
+      return res.status(404).json({ error: `Account "${cleanEmail}" not found in database.` });
+    }
+
+    res.json({ success: true, message: `Password for ${cleanEmail} successfully updated!` });
+  } catch (err) {
+    console.error('Error in reset-password-by-email:', err);
+    res.status(500).json({ error: 'Server error resetting password' });
+  }
+});
+
 export default router;
+

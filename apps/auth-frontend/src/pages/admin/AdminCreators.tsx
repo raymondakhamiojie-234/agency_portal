@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Search, Mail, ExternalLink, TrendingUp, Filter, Users as UsersIcon, X, Globe, Phone, MapPin, Download, Lock } from 'lucide-react';
+import { Search, Mail, ExternalLink, TrendingUp, Filter, Users as UsersIcon, X, Globe, Phone, MapPin, Download, Lock, Key } from 'lucide-react';
 import { exportToCSV } from '../../utils/export';
 
 export default function AdminCreators() {
@@ -13,6 +13,13 @@ export default function AdminCreators() {
   const [newPassword, setNewPassword] = useState('');
   const [resetMsg, setResetMsg] = useState('');
   const [resetting, setResetting] = useState(false);
+
+  // Quick Reset by Email State
+  const [quickResetOpen, setQuickResetOpen] = useState(false);
+  const [quickEmail, setQuickEmail] = useState('');
+  const [quickPassword, setQuickPassword] = useState('');
+  const [quickMsg, setQuickMsg] = useState('');
+  const [quickLoading, setQuickLoading] = useState(false);
 
   useEffect(() => {
     fetchCreators();
@@ -67,6 +74,30 @@ export default function AdminCreators() {
       setResetting(false);
     }
   };
+
+  const handleQuickReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!quickEmail || !quickPassword || quickPassword.length < 6) {
+      setQuickMsg('Valid email and password (min 6 characters) required.');
+      return;
+    }
+    setQuickLoading(true);
+    setQuickMsg('');
+    try {
+      const res = await axios.post('/api/admin/reset-password-by-email', {
+        email: quickEmail,
+        newPassword: quickPassword
+      }, { withCredentials: true });
+      setQuickMsg(res.data.message || 'Password successfully updated!');
+      setQuickPassword('');
+      fetchCreators();
+    } catch (err: any) {
+      setQuickMsg(err.response?.data?.error || 'Failed to update password.');
+    } finally {
+      setQuickLoading(false);
+    }
+  };
+
 
   const filteredCreators = creators.filter(c => {
     const matchesSearch = 
@@ -136,6 +167,18 @@ export default function AdminCreators() {
             className="flex items-center text-sm font-medium text-gray-300 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 px-4 py-2.5 rounded-xl transition-colors"
           >
             <Download className="h-4 w-4 mr-2" /> Export
+          </button>
+
+          <button 
+            onClick={() => {
+              setQuickEmail('');
+              setQuickPassword('');
+              setQuickMsg('');
+              setQuickResetOpen(true);
+            }}
+            className="flex items-center text-sm font-medium text-white bg-primary hover:bg-primary/90 px-4 py-2.5 rounded-xl transition-all shadow-lg shadow-primary/20"
+          >
+            <Key className="h-4 w-4 mr-2" /> Reset Password
           </button>
         </div>
       </div>
@@ -455,6 +498,87 @@ export default function AdminCreators() {
           </div>
         </div>
       )}
+
+      {/* Quick Password Reset Modal (By Email / Identifier) */}
+      {quickResetOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+          <div className="bg-[#0f0f13] border border-white/10 rounded-3xl max-w-md w-full overflow-hidden shadow-2xl relative">
+            <div className="p-6 border-b border-white/10 flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 rounded-xl bg-primary/20 text-primary">
+                  <Key className="h-5 w-5" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-white">Reset Account Password</h2>
+                  <p className="text-xs text-gray-400">Set a new password for any creator, admin, or partner</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setQuickResetOpen(false)}
+                className="text-gray-400 hover:text-white p-2 rounded-xl hover:bg-white/5 transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleQuickReset} className="p-6 space-y-4">
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">
+                  Account Email or Identifier *
+                </label>
+                <input 
+                  type="text"
+                  required
+                  placeholder="e.g. creator@gmail.com"
+                  value={quickEmail}
+                  onChange={(e) => setQuickEmail(e.target.value)}
+                  className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-primary transition-colors"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">
+                  New Password (min 6 chars) *
+                </label>
+                <input 
+                  type="text"
+                  required
+                  placeholder="Enter new login password"
+                  value={quickPassword}
+                  onChange={(e) => setQuickPassword(e.target.value)}
+                  className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-primary transition-colors font-mono"
+                />
+              </div>
+
+              {quickMsg && (
+                <div className={`p-3 rounded-xl text-xs font-medium ${
+                  quickMsg.includes('success') ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                }`}>
+                  {quickMsg}
+                </div>
+              )}
+
+              <div className="pt-2 flex space-x-3">
+                <button
+                  type="button"
+                  onClick={() => setQuickResetOpen(false)}
+                  className="flex-1 py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl text-xs font-semibold transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={quickLoading}
+                  className="flex-1 py-3 bg-primary hover:bg-primary/90 text-white rounded-xl text-xs font-semibold transition-colors disabled:opacity-50 shadow-lg shadow-primary/25"
+                >
+                  {quickLoading ? 'Updating...' : 'Set Password'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+

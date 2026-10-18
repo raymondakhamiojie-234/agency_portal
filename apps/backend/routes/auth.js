@@ -75,27 +75,36 @@ router.post('/callback/credentials-signin', async (req, res) => {
     if (user) {
       role = user.is_admin ? 'ADMIN' : user.is_partner ? 'PARTNER' : 'CREATOR';
       
-      // Look up password in auth_accounts (support integer or string userId, or providerAccountId)
+      // Look up password in auth_accounts (support integer or string userId, or providerAccountId matching id or email)
       const accountRes = await pool.query(
-        'SELECT password FROM auth_accounts WHERE "userId"::text = $1::text OR "providerAccountId"::text = $1::text ORDER BY id DESC LIMIT 1',
-        [String(user.id)]
+        `SELECT password FROM auth_accounts 
+         WHERE ("userId"::text = $1::text OR "providerAccountId"::text = $1::text OR LOWER(TRIM("providerAccountId"::text)) = LOWER($2)) 
+           AND password IS NOT NULL 
+         ORDER BY id DESC LIMIT 1`,
+        [String(user.id), cleanEmail]
       );
       if (accountRes.rows.length > 0 && accountRes.rows[0].password) {
         passwordHash = accountRes.rows[0].password;
+      } else if (user.password) {
+        passwordHash = user.password;
       }
-    } else {
-      // 2. If not found in auth_users, check admin_users table (from legacy SQL transfers)
+    }
+
+    // 2. If no password found yet, check admin_users table (matches email OR username)
+    if (!passwordHash) {
       try {
         const adminRes = await pool.query(
-          'SELECT * FROM admin_users WHERE LOWER(TRIM(email)) = LOWER($1) LIMIT 1',
+          `SELECT * FROM admin_users 
+           WHERE LOWER(TRIM(email)) = LOWER($1) OR LOWER(TRIM(username)) = LOWER($1) 
+           LIMIT 1`,
           [cleanEmail]
         );
         if (adminRes.rows.length > 0) {
           const admin = adminRes.rows[0];
           user = {
             id: admin.id,
-            name: admin.name || admin.username,
-            email: admin.email,
+            name: admin.full_name || admin.username || admin.name || 'Admin',
+            email: admin.email || cleanEmail,
             is_admin: true
           };
           role = 'ADMIN';
@@ -106,31 +115,69 @@ router.post('/callback/credentials-signin', async (req, res) => {
       }
     }
 
+    // 3. If no password found yet, check partners table (matches email OR referral_code)
+    if (!passwordHash) {
+      try {
+        const partnerRes = await pool.query(
+          `SELECT * FROM partners 
+           WHERE LOWER(TRIM(email)) = LOWER($1) OR LOWER(TRIM(referral_code)) = LOWER($1) 
+           LIMIT 1`,
+          [cleanEmail]
+        );
+        if (partnerRes.rows.length > 0) {
+          const partner = partnerRes.rows[0];
+          user = {
+            id: partner.id,
+            name: partner.name || 'Partner',
+            email: partner.email || cleanEmail,
+            is_partner: true
+          };
+          role = 'PARTNER';
+          passwordHash = partner.password;
+        }
+      } catch (err) {
+        // partners table might not exist in some schemas, safe to ignore
+      }
+    }
+
     if (!user || !passwordHash) {
-      console.warn(`[Login] Not found: user=${!!user}, passwordHash=${!!passwordHash} for email=${cleanEmail}`);
+      console.warn(`[Login] Not found: user=${!!user}, passwordHash=${!!passwordHash} for identifier=${cleanEmail}`);
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    // 3. Multi-algorithm verification (Argon2, Bcrypt, Plaintext fallback)
+    // 4. Multi-algorithm verification (Argon2, Bcrypt, Plaintext fallback)
+    // Also test trimmed password in case of copy-paste whitespace
+    const testPasswords = [password];
+    if (password !== password.trim()) {
+      testPasswords.push(password.trim());
+    }
+
+    const cleanHash = passwordHash.trim();
     let match = false;
-    try {
-      if (passwordHash.startsWith('$argon2')) {
-        match = await argon2.verify(passwordHash, password);
-      } else if (passwordHash.startsWith('$2a$') || passwordHash.startsWith('$2b$') || passwordHash.startsWith('$2y$')) {
-        match = await bcrypt.compare(password, passwordHash);
-      } else if (passwordHash === password) {
-        match = true;
-      } else {
-        // Fallback test
-        match = await bcrypt.compare(password, passwordHash);
+
+    for (const testPass of testPasswords) {
+      try {
+        if (cleanHash.startsWith('$argon2')) {
+          match = await argon2.verify(cleanHash, testPass);
+        } else if (cleanHash.startsWith('$2a$') || cleanHash.startsWith('$2b$') || cleanHash.startsWith('$2y$')) {
+          match = await bcrypt.compare(testPass, cleanHash);
+        } else if (cleanHash === testPass) {
+          match = true;
+        } else {
+          // Fallback test
+          match = await bcrypt.compare(testPass, cleanHash);
+        }
+      } catch (verifyErr) {
+        console.warn('[Login] Hash verification error:', verifyErr.message);
+        if (cleanHash === testPass) {
+          match = true;
+        }
       }
-    } catch (verifyErr) {
-      console.warn('[Login] Hash verification error:', verifyErr.message);
-      match = (passwordHash === password);
+      if (match) break;
     }
 
     if (!match) {
-      console.warn(`[Login] Password mismatch for email=${cleanEmail}`);
+      console.warn(`[Login] Password mismatch for identifier=${cleanEmail}`);
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
