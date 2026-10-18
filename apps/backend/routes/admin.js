@@ -1,13 +1,13 @@
 import express from 'express';
 import axios from 'axios';
 import Papa from 'papaparse';
+import argon2 from 'argon2';
 import { pool } from '../server.js';
 import { requireAuth, requireAdmin } from './auth.js';
 import { sendNotificationEmail } from '../utils/email.js';
 
 const router = express.Router();
 
-router.use(requireAuth, requireAdmin);
 router.use(requireAuth, requireAdmin);
 
 // Partners
@@ -1003,6 +1003,43 @@ router.get('/contracts', async (req, res) => {
   } catch (err) {
     console.error('Error fetching admin contracts:', err);
     res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Reset Creator Password (Admin action)
+router.post('/creators/:id/reset-password', async (req, res) => {
+  const { id } = req.params;
+  const { newPassword } = req.body;
+
+  if (!newPassword || newPassword.length < 6) {
+    return res.status(400).json({ error: 'Password must be at least 6 characters long' });
+  }
+
+  try {
+    const hashedPassword = await argon2.hash(newPassword);
+
+    const { rows: existing } = await pool.query(
+      'SELECT id FROM auth_accounts WHERE "userId"::text = $1::text OR "providerAccountId"::text = $1::text',
+      [String(id)]
+    );
+
+    if (existing.length > 0) {
+      await pool.query(
+        'UPDATE auth_accounts SET password = $1 WHERE "userId"::text = $2::text OR "providerAccountId"::text = $2::text',
+        [hashedPassword, String(id)]
+      );
+    } else {
+      await pool.query(
+        `INSERT INTO auth_accounts ("userId", type, provider, "providerAccountId", password)
+         VALUES ($1, 'credentials', 'credentials', $1::text, $2)`,
+        [id, hashedPassword]
+      );
+    }
+
+    res.json({ success: true, message: 'Password updated successfully' });
+  } catch (err) {
+    console.error('Error resetting creator password:', err);
+    res.status(500).json({ error: 'Server error resetting password' });
   }
 });
 

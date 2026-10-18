@@ -59,29 +59,78 @@ router.post('/callback/credentials-signin', async (req, res) => {
     return res.status(400).json({ message: 'Email and password required' });
   }
 
+  const cleanEmail = email.trim();
+
   try {
-    const { rows } = await pool.query('SELECT * FROM auth_users WHERE email = $1', [email]);
-    if (rows.length === 0) {
-      return res.status(401).json({ message: 'Invalid credentials' });
-    }
+    // 1. Search auth_users case-insensitively and trim spaces
+    const { rows } = await pool.query(
+      'SELECT * FROM auth_users WHERE LOWER(TRIM(email)) = LOWER($1)',
+      [cleanEmail]
+    );
 
-    const user = rows[0];
-    const role = user.is_admin ? 'ADMIN' : user.is_partner ? 'PARTNER' : 'CREATOR';
-    
-    const accountRes = await pool.query('SELECT password FROM auth_accounts WHERE "userId" = $1', [user.id]);
-    if (accountRes.rows.length === 0) {
-      return res.status(401).json({ message: 'Invalid credentials' });
-    }
-    const account = accountRes.rows[0];
+    let user = rows[0];
+    let role = 'CREATOR';
+    let passwordHash = null;
 
-    let match = false;
-    if (account.password.startsWith('$argon2')) {
-      match = await argon2.verify(account.password, password);
+    if (user) {
+      role = user.is_admin ? 'ADMIN' : user.is_partner ? 'PARTNER' : 'CREATOR';
+      
+      // Look up password in auth_accounts (support integer or string userId, or providerAccountId)
+      const accountRes = await pool.query(
+        'SELECT password FROM auth_accounts WHERE "userId"::text = $1::text OR "providerAccountId"::text = $1::text ORDER BY id DESC LIMIT 1',
+        [String(user.id)]
+      );
+      if (accountRes.rows.length > 0 && accountRes.rows[0].password) {
+        passwordHash = accountRes.rows[0].password;
+      }
     } else {
-      match = await bcrypt.compare(password, account.password);
+      // 2. If not found in auth_users, check admin_users table (from legacy SQL transfers)
+      try {
+        const adminRes = await pool.query(
+          'SELECT * FROM admin_users WHERE LOWER(TRIM(email)) = LOWER($1) LIMIT 1',
+          [cleanEmail]
+        );
+        if (adminRes.rows.length > 0) {
+          const admin = adminRes.rows[0];
+          user = {
+            id: admin.id,
+            name: admin.name || admin.username,
+            email: admin.email,
+            is_admin: true
+          };
+          role = 'ADMIN';
+          passwordHash = admin.password;
+        }
+      } catch (err) {
+        // admin_users table might not exist in some schemas, safe to ignore
+      }
     }
-    
+
+    if (!user || !passwordHash) {
+      console.warn(`[Login] Not found: user=${!!user}, passwordHash=${!!passwordHash} for email=${cleanEmail}`);
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    // 3. Multi-algorithm verification (Argon2, Bcrypt, Plaintext fallback)
+    let match = false;
+    try {
+      if (passwordHash.startsWith('$argon2')) {
+        match = await argon2.verify(passwordHash, password);
+      } else if (passwordHash.startsWith('$2a$') || passwordHash.startsWith('$2b$') || passwordHash.startsWith('$2y$')) {
+        match = await bcrypt.compare(password, passwordHash);
+      } else if (passwordHash === password) {
+        match = true;
+      } else {
+        // Fallback test
+        match = await bcrypt.compare(password, passwordHash);
+      }
+    } catch (verifyErr) {
+      console.warn('[Login] Hash verification error:', verifyErr.message);
+      match = (passwordHash === password);
+    }
+
     if (!match) {
+      console.warn(`[Login] Password mismatch for email=${cleanEmail}`);
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 

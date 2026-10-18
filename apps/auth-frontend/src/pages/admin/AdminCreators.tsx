@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Search, Mail, ExternalLink, TrendingUp, Filter, Users as UsersIcon, X, Globe, Phone, MapPin, Download } from 'lucide-react';
+import { Search, Mail, ExternalLink, TrendingUp, Filter, Users as UsersIcon, X, Globe, Phone, MapPin, Download, Lock } from 'lucide-react';
 import { exportToCSV } from '../../utils/export';
 
 export default function AdminCreators() {
@@ -10,6 +10,9 @@ export default function AdminCreators() {
   const [search, setSearch] = useState('');
   const [filterPlatform, setFilterPlatform] = useState('ALL');
   const [selectedCreator, setSelectedCreator] = useState<any>(null);
+  const [newPassword, setNewPassword] = useState('');
+  const [resetMsg, setResetMsg] = useState('');
+  const [resetting, setResetting] = useState(false);
 
   useEffect(() => {
     fetchCreators();
@@ -43,6 +46,25 @@ export default function AdminCreators() {
       setSelectedCreator({...selectedCreator, partner_id: partnerId});
     } catch (err) {
       console.error('Failed to assign partner', err);
+    }
+  };
+
+  const handleResetPassword = async (creatorId: string) => {
+    if (!newPassword || newPassword.length < 6) {
+      setResetMsg('Password must be at least 6 characters.');
+      return;
+    }
+    setResetting(true);
+    setResetMsg('');
+    try {
+      await axios.post(`/api/admin/creators/${creatorId}/reset-password`, { newPassword }, { withCredentials: true });
+      setResetMsg('Password successfully updated!');
+      setNewPassword('');
+      setTimeout(() => setResetMsg(''), 4000);
+    } catch (err: any) {
+      setResetMsg(err.response?.data?.error || 'Failed to update password.');
+    } finally {
+      setResetting(false);
     }
   };
 
@@ -377,6 +399,38 @@ export default function AdminCreators() {
                     </div>
                   ) : (
                     <div className="text-sm text-gray-500 italic">No links provided</div>
+                  )}
+                </div>
+
+                {/* Account & Security (Admin Password Reset) */}
+                <div className="space-y-4 md:col-span-2 bg-white/[0.02] p-5 rounded-2xl border border-white/5 mt-2">
+                  <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wider flex items-center">
+                    <Lock className="h-4 w-4 mr-2 text-primary" /> Reset Creator Password
+                  </h3>
+                  <p className="text-xs text-gray-400">
+                    Set a new login password for this creator if they are having difficulty logging in.
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <input 
+                      type="text" 
+                      placeholder="Enter new password (min 6 chars)" 
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      className="bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-white text-sm focus:outline-none focus:border-primary flex-1"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleResetPassword(selectedCreator.id)}
+                      disabled={resetting || !newPassword}
+                      className="px-5 py-2 bg-primary hover:bg-primary-hover text-white rounded-xl text-xs font-semibold disabled:opacity-50 transition-colors flex-shrink-0"
+                    >
+                      {resetting ? 'Updating...' : 'Set Password'}
+                    </button>
+                  </div>
+                  {resetMsg && (
+                    <div className={`text-xs ${resetMsg.includes('success') ? 'text-green-400 font-medium' : 'text-red-400'}`}>
+                      {resetMsg}
+                    </div>
                   )}
                 </div>
               </div>
