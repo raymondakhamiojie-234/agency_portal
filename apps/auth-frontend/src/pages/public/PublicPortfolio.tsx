@@ -102,9 +102,10 @@ function getCreatorNicheProfile(portfolio: any, socialLinks: any[] = []): NicheP
   const tagline = (portfolio?.tagline || '').toLowerCase();
   const bio = (portfolio?.bio || '').toLowerCase();
   const name = (portfolio?.display_name || '').toLowerCase();
+  const pageName = (portfolio?.page_name || '').toLowerCase();
   const platform = (portfolio?.primary_platform || '').toLowerCase();
-  const creatorName = portfolio?.display_name || 'Alex';
-  const firstName = creatorName.split(' ')[0] || creatorName;
+  const creatorName = portfolio?.page_name || (portfolio?.display_name !== 'Falcus Media Ltd' ? portfolio?.display_name : null) || portfolio?.page_name || portfolio?.display_name || 'Creator';
+  const firstName = creatorName;
 
   // Determine follower reach display string
   let formattedReach = '100K+ Reach';
@@ -124,7 +125,82 @@ function getCreatorNicheProfile(portfolio: any, socialLinks: any[] = []): NicheP
     }
   }
 
-  // 1. Social Media Management / Media Agency (Matches Falcus Media Ltd)
+  // 1. Comedy, Comics & Entertainment Creators (e.g. Falcus Comics, Comedy Pages)
+  if (
+    tagline.includes('comic') ||
+    tagline.includes('comedy') ||
+    tagline.includes('comedian') ||
+    tagline.includes('skit') ||
+    tagline.includes('entertainment') ||
+    name.includes('comic') ||
+    name.includes('comedy') ||
+    pageName.includes('comic') ||
+    pageName.includes('comedy')
+  ) {
+    return {
+      category: 'general_creator',
+      brandEmblem: '🎭',
+      roleBadge: portfolio?.tagline?.toUpperCase() || 'COMEDY & ENTERTAINMENT CREATOR',
+      headlineAccent: 'I create viral comedy, relatable skits & engaging stories.',
+      bioFallback: 'Digital creator and entertainer delivering viral sketches, original comedy, and high-impact brand integrations that connect with audiences worldwide.',
+      cardBadge: 'CREATOR PROFILE',
+      cardVarName: 'entertainer',
+      cardNiche: portfolio?.tagline || 'Comedy & Entertainment',
+      aboutBadge: `ABOUT ${creatorName.toUpperCase()}`,
+      aboutTitle1: 'Dedicated to bringing',
+      aboutTitleHighlight: 'humor, joy & authentic entertainment',
+      aboutP1: 'With a passionate community and millions of impressions across social channels, I create original comedic content, relatable characters, and memorable sketches that audiences love to share.',
+      aboutP2: 'Collaborating with forward-thinking brands to craft natural, hilarious, and high-converting product integrations that resonate with viewers.',
+      stats: [
+        { value: '4+', label: 'Years Entertaining', icon: 'calendar' },
+        { value: '250+', label: 'Sketches & Releases', icon: 'sparkles' },
+        { value: formattedReach, label: 'Fanbase & Reach', icon: 'smile' },
+        { value: '99%', label: 'Audience Satisfaction', icon: 'trophy' }
+      ],
+      skillsTitle: 'Creative Capabilities & Reach',
+      skillsSubtitle: 'Core entertainment strengths delivering viral watch-time and massive organic shares.',
+      skills: [
+        { name: 'Viral Comedy & Skit Production', pct: 96, color: 'from-amber-500 to-yellow-500' },
+        { name: 'Organic Brand Integrations', pct: 94, color: 'from-purple-500 to-indigo-500' },
+        { name: 'Character Acting & Storytelling', pct: 92, color: 'from-pink-500 to-rose-500' },
+        { name: 'Shorts & Reels Production', pct: 95, color: 'from-cyan-500 to-blue-500' },
+        { name: 'Community Engagement & Viral Shares', pct: 97, color: 'from-emerald-500 to-teal-500' },
+        { name: 'Audience Retention & Watch-Time', pct: 90, color: 'from-rose-500 to-orange-500' }
+      ],
+      defaultProjects: [
+        {
+          title: 'Viral Relatable Comedy Skit',
+          desc: 'High-production comedic sketch generating over 1M+ views and thousands of organic comments.',
+          tag: 'Comedy Sketch',
+          image: 'https://images.unsplash.com/photo-1514306191717-452ec28c7814?auto=format&fit=crop&w=800&q=80',
+          url: '#'
+        },
+        {
+          title: 'Seamless Brand Integration Skit',
+          desc: 'Natural comedic integration weaving product benefits directly into a hilarious character storyline.',
+          tag: 'Brand Collaboration',
+          image: 'https://images.unsplash.com/photo-1533750516457-a7f992034fec?auto=format&fit=crop&w=800&q=80',
+          url: '#'
+        },
+        {
+          title: 'Multi-Platform Short-Form Blitz',
+          desc: 'Synchronized release across Facebook Reels, YouTube Shorts, and TikTok driving maximum shares.',
+          tag: 'Social Growth',
+          image: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?auto=format&fit=crop&w=800&q=80',
+          url: '#'
+        }
+      ],
+      testimonialQuote: `Working with ${creatorName} was an absolute blast. Their skit brought our product to life with genuine laughs and phenomenal engagement!`,
+      testimonialAuthor: 'Amanda Cole',
+      testimonialRole: 'Head of Brand Marketing, Peak Viral Media',
+      ctaTag: "LET'S WORK TOGETHER",
+      ctaTitle: 'Ready to entertain your audience?',
+      ctaDesc: "I'm always open to discussing new brand deals, comedic sponsorships, and custom product placements. Let's create something unforgettable together!",
+      packageFallbackDesc: 'Full custom skit production, organic brand placement, revisions, and multi-platform promotional usage.'
+    };
+  }
+
+  // 2. Social Media Management / Media Agency (Matches Falcus Media Ltd)
   if (
     tagline.includes('social media') ||
     tagline.includes('management') ||
@@ -501,6 +577,23 @@ export default function PublicPortfolio() {
   // Active slug
   const activeSlug = slug || window.location.pathname.replace(/^\/(?:p\/)?/, '').split('/')[0];
 
+  // Dynamically set browser tab / page title to the Creator's Page Name
+  useEffect(() => {
+    if (portfolio) {
+      const pageTitle = portfolio.page_name || (portfolio.display_name !== 'Falcus Media Ltd' ? portfolio.display_name : null) || portfolio.page_name || portfolio.display_name || 'Creator Portfolio';
+      document.title = pageTitle;
+    } else if (activeSlug) {
+      const formattedSlug = activeSlug
+        .split('-')
+        .map((w: string) => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(' ');
+      document.title = formattedSlug;
+    }
+    return () => {
+      document.title = 'Falcus Media Agency';
+    };
+  }, [portfolio, activeSlug]);
+
   useEffect(() => {
     if (activeSlug) {
       fetchPublicPortfolio(activeSlug);
@@ -639,8 +732,8 @@ export default function PublicPortfolio() {
     ? JSON.parse(portfolio.services || '[]')
     : [];
 
-  const creatorName = portfolio.display_name || 'Alex';
-  const firstName = creatorName.split(' ')[0] || creatorName;
+  const creatorName = portfolio.page_name || (portfolio.display_name !== 'Falcus Media Ltd' ? portfolio.display_name : null) || portfolio.page_name || portfolio.display_name || 'Creator';
+  const firstName = creatorName;
   const avatarUrl = portfolio.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80';
   
   // Intelligent Niche & Style Profile Customization

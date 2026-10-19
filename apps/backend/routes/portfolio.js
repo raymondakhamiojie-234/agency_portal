@@ -27,12 +27,19 @@ router.get('/', requireAuth, async (req, res) => {
   try {
     // 1. Check if portfolio already exists
     const { rows: existing } = await pool.query(
-      'SELECT * FROM creator_portfolios WHERE user_id = $1',
+      `SELECT p.*, cp.page_name, cp.brand_name 
+       FROM creator_portfolios p 
+       LEFT JOIN creator_profiles cp ON p.user_id = cp.user_id 
+       WHERE p.user_id = $1`,
       [userId]
     );
 
     if (existing.length > 0) {
-      return res.json({ portfolio: existing[0] });
+      const p = existing[0];
+      if (p.display_name === 'Falcus Media Ltd' && p.page_name) {
+        p.display_name = p.page_name;
+      }
+      return res.json({ portfolio: p });
     }
 
     // 2. If not found, fetch existing profile data to pre-populate defaults
@@ -48,7 +55,7 @@ router.get('/', requireAuth, async (req, res) => {
     const profile = profileRows[0] || {};
     const user = userRows[0] || {};
 
-    const displayName = profile.brand_name || profile.page_name || profile.full_name || user.name || 'Creator';
+    const displayName = profile.page_name || profile.brand_name || profile.full_name || user.name || 'Creator';
     let rawSlug = profile.page_name || profile.brand_name || user.name || `creator-${userId}`;
     let baseSlug = slugify(rawSlug) || `creator-${userId}`;
     let uniqueSlug = baseSlug;
@@ -247,13 +254,23 @@ router.get('/public/:slug', async (req, res) => {
   try {
     const { rows } = await pool.query(
       `SELECT 
-        p.id, p.slug, p.is_published, p.display_name, p.tagline, p.bio,
+        p.id, p.slug, p.is_published,
+        COALESCE(
+          NULLIF(p.display_name, 'Falcus Media Ltd'),
+          cp.page_name,
+          p.display_name,
+          cp.brand_name,
+          u.name
+        ) as display_name,
+        COALESCE(cp.page_name, p.display_name) as page_name,
+        p.tagline, p.bio,
         p.avatar_url, p.banner_url, p.theme_color, p.primary_platform,
         p.follower_count, p.social_links, p.featured_media, p.services,
         p.created_at,
         u.name as agency_verified_name
        FROM creator_portfolios p
        JOIN auth_users u ON p.user_id = u.id
+       LEFT JOIN creator_profiles cp ON p.user_id = cp.user_id
        WHERE LOWER(p.slug) = LOWER($1)`,
       [cleanSlug]
     );
