@@ -7,17 +7,45 @@ const router = express.Router();
 
 router.use(requireAuth);
 
+async function getOrCreateCreatorProfile(userId, defaultName) {
+  let profileRes = await pool.query(
+    'SELECT id, full_name, brand_name, page_name FROM creator_profiles WHERE user_id = $1',
+    [userId]
+  );
+  if (profileRes.rows.length > 0) {
+    return profileRes.rows[0];
+  }
+
+  let name = defaultName;
+  if (!name) {
+    const userRes = await pool.query('SELECT name, email FROM auth_users WHERE id = $1', [userId]);
+    name = userRes.rows[0]?.name || userRes.rows[0]?.email?.split('@')[0] || 'Creator';
+  }
+
+  const newProfile = await pool.query(
+    `INSERT INTO creator_profiles (user_id, full_name, brand_name, page_name, account_status, created_at, updated_at)
+     VALUES ($1, $2, $2, $2, 'Active', NOW(), NOW())
+     ON CONFLICT (user_id) DO UPDATE SET updated_at = NOW()
+     RETURNING id, full_name, brand_name, page_name`,
+    [userId, name]
+  );
+  return newProfile.rows[0];
+}
+
 router.get('/dashboard/creator', async (req, res) => {
   const userId = req.user.id;
   try {
+    const profile = await getOrCreateCreatorProfile(userId, req.user.name);
+    const creatorProfileId = profile.id;
+
     const earningsResult = await pool.query(
-      'SELECT SUM(amount) as total FROM earnings WHERE creator_id = $1',
-      [userId]
+      'SELECT SUM(amount) as total FROM earnings WHERE creator_id = $1 OR creator_id = $2',
+      [creatorProfileId, userId]
     );
 
     const pendingEarningsResult = await pool.query(
-      "SELECT SUM(amount) as total FROM earnings WHERE creator_id = $1 AND payout_status ILIKE 'unpaid'",
-      [userId]
+      "SELECT SUM(amount) as total FROM earnings WHERE (creator_id = $1 OR creator_id = $2) AND payout_status ILIKE 'unpaid'",
+      [creatorProfileId, userId]
     );
 
     const loansResult = await pool.query(
@@ -26,8 +54,8 @@ router.get('/dashboard/creator', async (req, res) => {
     );
 
     const historyResult = await pool.query(
-      'SELECT * FROM earnings WHERE creator_id = $1 ORDER BY created_at DESC LIMIT 5',
-      [userId]
+      'SELECT * FROM earnings WHERE creator_id = $1 OR creator_id = $2 ORDER BY created_at DESC LIMIT 5',
+      [creatorProfileId, userId]
     );
 
     const history = historyResult.rows.map(row => ({
@@ -61,16 +89,19 @@ router.get('/dashboard/creator', async (req, res) => {
 router.get('/dashboard/creator/analytics', async (req, res) => {
   const userId = req.user.id;
   try {
+    const profile = await getOrCreateCreatorProfile(userId, req.user.name);
+    const creatorProfileId = profile.id;
+
     const { rows } = await pool.query(`
       SELECT 
         TO_CHAR(DATE_TRUNC('month', earning_date), 'Mon YYYY') as month,
         SUM(amount) as earnings
       FROM earnings 
-      WHERE creator_id = $1 
+      WHERE creator_id = $1 OR creator_id = $2
       GROUP BY DATE_TRUNC('month', earning_date)
       ORDER BY DATE_TRUNC('month', earning_date) ASC
       LIMIT 12
-    `, [userId]);
+    `, [creatorProfileId, userId]);
 
     res.json(rows.map(row => ({
       month: row.month,
@@ -85,9 +116,12 @@ router.get('/dashboard/creator/analytics', async (req, res) => {
 router.get('/earnings', async (req, res) => {
   try {
     const userId = req.user.id;
+    const profile = await getOrCreateCreatorProfile(userId, req.user.name);
+    const creatorProfileId = profile.id;
+
     const { rows } = await pool.query(
-      'SELECT * FROM earnings WHERE creator_id = $1 ORDER BY created_at DESC',
-      [userId]
+      'SELECT * FROM earnings WHERE creator_id = $1 OR creator_id = $2 ORDER BY created_at DESC',
+      [creatorProfileId, userId]
     );
     
     res.json(rows.map(row => ({
@@ -299,13 +333,16 @@ router.get('/monetization', async (req, res) => {
 router.get('/contracts', async (req, res) => {
   try {
     const userId = req.user.id;
+    const profile = await getOrCreateCreatorProfile(userId, req.user.name);
+    const creatorProfileId = profile.id;
+
     const masterRes = await pool.query(
-      "SELECT * FROM contracts WHERE creator_id = $1 ORDER BY created_at DESC", 
-      [userId]
+      "SELECT * FROM contracts WHERE creator_id = $1 OR creator_id = $2 ORDER BY created_at DESC", 
+      [creatorProfileId, userId]
     );
     const platformRes = await pool.query(
-      "SELECT * FROM platform_contracts WHERE creator_id = $1 ORDER BY created_at DESC", 
-      [userId]
+      "SELECT * FROM platform_contracts WHERE creator_id = $1 OR creator_id = $2 ORDER BY created_at DESC", 
+      [creatorProfileId, userId]
     );
     
     res.json({
@@ -313,6 +350,7 @@ router.get('/contracts', async (req, res) => {
       platform: platformRes.rows
     });
   } catch (err) {
+    console.error('Fetch Contracts Error:', err);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -321,21 +359,64 @@ router.post('/contracts/master', async (req, res) => {
   try {
     const userId = req.user.id;
     const { signature_name } = req.body;
-    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    const ip = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1').toString().split(',')[0].trim();
     
+    if (!signature_name || !signature_name.trim()) {
+      return res.status(400).json({ error: 'Electronic signature name is required' });
+    }
+
+    const profile = await getOrCreateCreatorProfile(userId, signature_name.trim());
+    const creatorProfileId = profile.id;
+    const creatorName = profile.full_name || req.user.name || signature_name.trim();
+
+    // Mark seller_contract_signed in creator_profiles
+    await pool.query(
+      `UPDATE creator_profiles 
+       SET seller_contract_signed = true, seller_contract_signed_at = NOW(), updated_at = NOW() 
+       WHERE id = $1`,
+      [creatorProfileId]
+    );
+
+    const contractText = `EXCLUSIVE PARTNERSHIP & MONETIZATION AGREEMENT
+
+BETWEEN:
+FALCUS MEDIA LIMITED, a company incorporated under the Companies and Allied Matters Act, having its principal place of business at NO 2 EKEZUE STREET, OFF EZIOPKOR ROAD, OBIARUKU, DELTA STATE, NIGERIA ("Company")
+
+AND:
+"${signature_name.trim()}" ("Creator")
+
+WHEREAS:
+1. The Company possesses expertise in digital monetization, talent management, and brand distribution services.
+2. The Creator engages the Company as an independent monetization partner under the terms set forth herein.
+
+TERMS AND CONDITIONS:
+1. REVENUE SHARE: 70% to Creator, 30% to Falcus Media Ltd from net monetization proceeds.
+2. TERM: Initial term of one (1) year from the date of signature, automatically renewing for successive one-year terms unless either party provides 30 days prior written notice.
+3. EXCLUSIVITY: Creator agrees to exclusively route listed digital monetization platforms through Falcus Media Ltd.
+4. PAYMENTS: Payouts are calculated monthly and distributed to the Creator upon receipt of platform funds.
+5. INDEPENDENT CONTRACTOR: This Agreement does not create an employer-employee, agency, or partnership relationship.
+6. GOVERNING LAW: This Agreement shall be governed by and construed in accordance with the laws of the Federal Republic of Nigeria.
+
+ELECTRONIC EXECUTION:
+Signer: ${signature_name.trim()}
+Signer Full Name: ${creatorName}
+IP Address: ${ip}
+Timestamp: ${new Date().toISOString()}
+Status: Signed`;
+
     const { rows } = await pool.query(
       `INSERT INTO contracts (
         creator_id, revenue_share_percentage, duration_years, 
         signed_at, created_at, signed_by_name, signature_name, 
-        signature_ip, ip_address, status
-      ) VALUES ($1, $2, $3, NOW(), NOW(), $4, $5, $6, $7, 'Signed') RETURNING *`,
-      [userId, 70, 1, req.user.name, signature_name, ip, ip]
+        signature_ip, ip_address, status, contract_text
+      ) VALUES ($1, $2, $3, NOW(), NOW(), $4, $5, $6, $7, 'Signed', $8) RETURNING *`,
+      [creatorProfileId, 70, 1, creatorName, signature_name.trim(), ip, ip, contractText]
     );
     
     res.json({ success: true, contract: rows[0] });
   } catch (err) {
     console.error('Sign Master Contract Error:', err);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: err.message || 'Server error' });
   }
 });
 
@@ -344,18 +425,35 @@ router.post('/contracts/platform', async (req, res) => {
     const userId = req.user.id;
     const { platform, account_name, account_url, followers_count } = req.body;
     
+    if (!platform || !account_name || !account_url) {
+      return res.status(400).json({ error: 'Platform, account name, and account URL are required' });
+    }
+
+    const profile = await getOrCreateCreatorProfile(userId, req.user.name || account_name);
+    const creatorProfileId = profile.id;
+
+    const platformContractText = `PLATFORM MONETIZATION ADDENDUM
+
+Platform: ${platform}
+Account Name: ${account_name}
+Account URL: ${account_url}
+Followers / Audience Count: ${followers_count || 0}
+Creator Profile ID: ${creatorProfileId}
+Submitted At: ${new Date().toISOString()}
+Status: Pending Verification`;
+    
     const { rows } = await pool.query(
       `INSERT INTO platform_contracts (
         creator_id, platform, account_name, account_url, 
-        followers_count, signed_at, created_at, status
-      ) VALUES ($1, $2, $3, $4, $5, NOW(), NOW(), 'Pending') RETURNING *`,
-      [userId, platform, account_name, account_url, followers_count || 0]
+        followers_count, signed_at, created_at, status, contract_text
+      ) VALUES ($1, $2, $3, $4, $5, NOW(), NOW(), 'Pending', $6) RETURNING *`,
+      [creatorProfileId, platform, account_name, account_url, followers_count || 0, platformContractText]
     );
     
     res.json({ success: true, contract: rows[0] });
   } catch (err) {
     console.error('Sign Platform Contract Error:', err);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: err.message || 'Server error' });
   }
 });
 

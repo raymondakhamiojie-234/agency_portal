@@ -136,18 +136,37 @@ const allowedOrigins = [
   frontendUrl,
   'https://agency-creators-portal.vercel.app',
   'https://creators.falcusmedia.com',
+  'https://falcusmedia.com',
   'http://localhost:5173',
   'http://localhost:3000'
 ];
 
+function isOriginAllowed(origin) {
+  if (!origin) return true;
+  if (allowedOrigins.includes(origin)) return true;
+  if (origin.endsWith('.falcusmedia.com') || origin.endsWith('.vercel.app')) return true;
+  return false;
+}
+
+// 1. Explicit CORS Preflight & Response Headers Middleware
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin && isOriginAllowed(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  }
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+  next();
+});
+
+// 2. Standard CORS package
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin) return callback(null, true);
-    if (
-      allowedOrigins.includes(origin) ||
-      origin.endsWith('.falcusmedia.com') ||
-      origin.endsWith('.vercel.app')
-    ) {
+    if (!origin || isOriginAllowed(origin)) {
       return callback(null, true);
     }
     return callback(null, true);
@@ -168,6 +187,17 @@ app.use('/api/admin', adminRoutes);
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
+});
+
+// Global Express Error Handler
+app.use((err, req, res, next) => {
+  console.error('Unhandled Server Error:', err);
+  const origin = req.headers.origin;
+  if (origin && isOriginAllowed(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  }
+  res.status(err.status || 500).json({ error: err.message || 'Internal Server Error' });
 });
 
 app.listen(port, () => {

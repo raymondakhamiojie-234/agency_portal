@@ -983,16 +983,22 @@ router.put('/fb-pages/:id/assign', async (req, res) => {
 router.get('/contracts', async (req, res) => {
   try {
     const { rows: masterContracts } = await pool.query(`
-      SELECT c.*, u.name as creator_name, u.email as creator_email
+      SELECT c.*, 
+             COALESCE(u.name, cp.full_name, c.signature_name, c.signed_by_name) as creator_name, 
+             u.email as creator_email
       FROM contracts c
-      JOIN auth_users u ON c.creator_id = u.id
+      LEFT JOIN creator_profiles cp ON c.creator_id = cp.id
+      LEFT JOIN auth_users u ON cp.user_id = u.id OR c.creator_id = u.id
       ORDER BY c.created_at DESC
     `);
     
     const { rows: platformContracts } = await pool.query(`
-      SELECT pc.*, u.name as creator_name, u.email as creator_email
+      SELECT pc.*, 
+             COALESCE(u.name, cp.full_name, pc.account_name) as creator_name, 
+             u.email as creator_email
       FROM platform_contracts pc
-      JOIN auth_users u ON pc.creator_id = u.id
+      LEFT JOIN creator_profiles cp ON pc.creator_id = cp.id
+      LEFT JOIN auth_users u ON cp.user_id = u.id OR pc.creator_id = u.id
       ORDER BY pc.created_at DESC
     `);
     

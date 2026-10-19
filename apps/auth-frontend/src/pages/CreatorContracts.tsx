@@ -13,6 +13,7 @@ export default function CreatorContracts() {
   // Master Contract Sign State
   const [signatureName, setSignatureName] = useState('');
   const [signingMaster, setSigningMaster] = useState(false);
+  const [masterError, setMasterError] = useState('');
   
   // Platform Contract Form State
   const [platform, setPlatform] = useState('YouTube');
@@ -20,6 +21,7 @@ export default function CreatorContracts() {
   const [accountUrl, setAccountUrl] = useState('');
   const [followersCount, setFollowersCount] = useState('');
   const [signingPlatform, setSigningPlatform] = useState(false);
+  const [platformError, setPlatformError] = useState('');
 
   useEffect(() => {
     fetchContracts();
@@ -40,11 +42,14 @@ export default function CreatorContracts() {
   const handleSignMaster = async (e: React.FormEvent) => {
     e.preventDefault();
     setSigningMaster(true);
+    setMasterError('');
     try {
       await axios.post('/api/contracts/master', { signature_name: signatureName }, { withCredentials: true });
       fetchContracts();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to sign master contract', err);
+      const msg = err.response?.data?.error || err.response?.data?.message || err.message || 'Failed to sign master contract. Please try again.';
+      setMasterError(msg);
     } finally {
       setSigningMaster(false);
     }
@@ -53,6 +58,7 @@ export default function CreatorContracts() {
   const handleSignPlatform = async (e: React.FormEvent) => {
     e.preventDefault();
     setSigningPlatform(true);
+    setPlatformError('');
     try {
       await axios.post('/api/contracts/platform', {
         platform,
@@ -65,8 +71,10 @@ export default function CreatorContracts() {
       setAccountUrl('');
       setFollowersCount('');
       fetchContracts();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to sign platform contract', err);
+      const msg = err.response?.data?.error || err.response?.data?.message || err.message || 'Failed to submit platform contract. Please try again.';
+      setPlatformError(msg);
     } finally {
       setSigningPlatform(false);
     }
@@ -112,6 +120,12 @@ export default function CreatorContracts() {
           </div>
 
           <form onSubmit={handleSignMaster} className="space-y-4 max-w-sm">
+            {masterError && (
+              <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm flex items-start space-x-2">
+                <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-red-400" />
+                <span className="leading-snug">{masterError}</span>
+              </div>
+            )}
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">Electronic Signature (Type Full Name)</label>
               <input
@@ -144,7 +158,10 @@ export default function CreatorContracts() {
           <p className="text-gray-400">Manage your master agreement and platform integrations.</p>
         </div>
         <button 
-          onClick={() => setShowPlatformModal(true)}
+          onClick={() => {
+            setPlatformError('');
+            setShowPlatformModal(true);
+          }}
           className="flex items-center text-sm font-medium text-white bg-primary hover:bg-primary/90 px-5 py-2.5 rounded-xl transition-all shadow-[0_0_15px_rgba(99,102,255,0.2)]"
         >
           <Plus className="h-4 w-4 mr-2" />
@@ -276,6 +293,12 @@ export default function CreatorContracts() {
             </div>
             
             <form onSubmit={handleSignPlatform} className="p-6 space-y-5">
+              {platformError && (
+                <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm flex items-start space-x-2">
+                  <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-red-400" />
+                  <span className="leading-snug">{platformError}</span>
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-1.5">Platform</label>
                 <select
