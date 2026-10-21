@@ -13,6 +13,7 @@ import {
   MessageCircle,
   Trophy,
   Sparkles,
+  Bot,
   X
 } from 'lucide-react';
 
@@ -25,6 +26,7 @@ interface SidebarProps {
 export default function Sidebar({ role = 'CREATOR', isOpen = false, onClose }: SidebarProps) {
   const creatorLinks = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+    { name: 'AI Page Auditor', path: '/ai-audit', icon: Bot },
     { name: 'My Portfolio', path: '/portfolio', icon: Sparkles },
     { name: 'Leaderboard', path: '/leaderboard', icon: Trophy },
     { name: 'Support & Manager', path: '/support', icon: MessageCircle },
@@ -43,6 +45,7 @@ export default function Sidebar({ role = 'CREATOR', isOpen = false, onClose }: S
     { name: 'Contracts', path: '/admin/contracts', icon: FileText },
     { name: 'FB Profiles', path: '/admin/fb-profiles', icon: Users },
     { name: 'FB Pages', path: '/admin/fb-pages', icon: FileText },
+    { name: 'AI Page Audits', path: '/admin/ai-audits', icon: Bot },
     { name: 'Earnings', path: '/admin/earnings', icon: Wallet },
     { name: 'Monetization', path: '/admin/monetization', icon: TrendingUp },
     { name: 'Payments', path: '/admin/payments', icon: CreditCard },

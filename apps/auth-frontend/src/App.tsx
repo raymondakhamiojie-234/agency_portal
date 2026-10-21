@@ -30,6 +30,8 @@ import ForgotPassword from './pages/ForgotPassword';
 import Settings from './pages/Settings';
 import Leaderboard from './pages/Leaderboard';
 import PartnerDashboard from './pages/partner/PartnerDashboard';
+import CreatorAiAudit from './pages/CreatorAiAudit';
+import AdminAiAudits from './pages/admin/AdminAiAudits';
 
 function RootRoute() {
   const isCreatorsSubdomain = typeof window !== 'undefined' && window.location.hostname.includes('creators.falcusmedia.com');
@@ -54,6 +56,7 @@ function App() {
         <Route element={<Layout />}>
           {/* Shared / Creator Routes */}
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/ai-audit" element={<CreatorAiAudit />} />
           <Route path="/portfolio" element={<CreatorPortfolio />} />
           <Route path="/support" element={<CreatorSupport />} />
           <Route path="/profile" element={<CreatorProfile />} />
@@ -73,6 +76,7 @@ function App() {
           <Route path="/admin/creators" element={<AdminCreators />} />
           <Route path="/admin/partners" element={<AdminPartners />} />
           <Route path="/admin/contracts" element={<AdminContracts />} />
+          <Route path="/admin/ai-audits" element={<AdminAiAudits />} />
           <Route path="/admin/earnings" element={<AdminEarnings />} />
           <Route path="/admin/monetization" element={<AdminMonetization />} />
           <Route path="/admin/payments" element={<AdminPayments />} />

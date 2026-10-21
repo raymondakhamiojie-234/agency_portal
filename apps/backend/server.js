@@ -10,6 +10,7 @@ import managerRoutes from './routes/manager.js';
 import adminRoutes from './routes/admin.js';
 import partnerRoutes from './routes/partner.js';
 import portfolioRoutes from './routes/portfolio.js';
+import aiAuditRoutes from './routes/aiAudit.js';
 
 const { Pool } = pg;
 const app = express();
@@ -119,6 +120,42 @@ pool.connect()
       } catch(err) {
         console.error('Failed to create portfolio tables:', err);
       }
+
+      // AI Page Audits Migration
+      try {
+        await pool.query(`
+          CREATE TABLE IF NOT EXISTS creator_page_audits (
+            id SERIAL PRIMARY KEY,
+            creator_id INTEGER REFERENCES creator_profiles(id) ON DELETE CASCADE,
+            user_id ${idType} REFERENCES auth_users(id) ON DELETE CASCADE,
+            page_url TEXT NOT NULL,
+            platform VARCHAR(100) DEFAULT 'General',
+            page_name VARCHAR(255),
+            status VARCHAR(50) DEFAULT 'completed',
+            health_score INTEGER DEFAULT 85,
+            engagement_score INTEGER DEFAULT 80,
+            monetization_score INTEGER DEFAULT 80,
+            virality_score INTEGER DEFAULT 80,
+            estimated_sponsorship_rate VARCHAR(100) DEFAULT '$300 - $1,000 per post',
+            executive_summary TEXT,
+            strengths JSONB DEFAULT '[]'::jsonb,
+            weaknesses JSONB DEFAULT '[]'::jsonb,
+            recommendations JSONB DEFAULT '[]'::jsonb,
+            content_breakdown JSONB DEFAULT '{}'::jsonb,
+            monetization_opportunities JSONB DEFAULT '[]'::jsonb,
+            raw_ai_payload JSONB DEFAULT '{}'::jsonb,
+            source VARCHAR(100) DEFAULT 'external_ai',
+            created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW(),
+            updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
+          );
+
+          CREATE INDEX IF NOT EXISTS idx_creator_page_audits_user_id ON creator_page_audits(user_id);
+          CREATE INDEX IF NOT EXISTS idx_creator_page_audits_status ON creator_page_audits(status);
+        `);
+        console.log('AI Page Audits table migration successful');
+      } catch(err) {
+        console.error('Failed to create creator_page_audits table:', err);
+      }
       
       console.log('DB migrations successful');
     } catch (e) {
@@ -182,6 +219,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/manager', managerRoutes);
 app.use('/api/partner', partnerRoutes);
 app.use('/api/portfolio', portfolioRoutes);
+app.use('/api/ai', aiAuditRoutes);
 app.use('/api', creatorRoutes);
 app.use('/api/admin', adminRoutes);
 

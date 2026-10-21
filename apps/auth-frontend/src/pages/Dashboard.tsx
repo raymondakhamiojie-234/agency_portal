@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext, Link } from 'react-router-dom';
 import axios from 'axios';
-import { Wallet, TrendingUp, CreditCard, Landmark } from 'lucide-react';
+import { Wallet, TrendingUp, CreditCard, Landmark, Bot, Sparkles, ArrowUpRight } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import StatCard from '../components/StatCard';
 import AdminDashboard from './admin/AdminDashboard';
@@ -55,7 +55,7 @@ export default function Dashboard() {
     <div className="space-y-8 max-w-7xl mx-auto">
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-white">Creator Dashboard</h1>
-        <p className="text-gray-400 mt-1">Welcome back. Here's your financial overview.</p>
+        <p className="text-gray-400 mt-1">Welcome back. Here's your financial and growth overview.</p>
       </div>
 
       {/* Stats Grid */}
@@ -112,21 +112,64 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="bg-black/40 backdrop-blur-md border border-border rounded-2xl p-6">
-          <h2 className="text-lg font-semibold text-white mb-4">Quick Links</h2>
-          <div className="space-y-3">
-            <button className="w-full text-left px-4 py-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-border transition-colors group flex justify-between items-center">
-              <span className="text-sm font-medium text-gray-300 group-hover:text-white">Request Loan Advance</span>
-              <span className="text-primary group-hover:translate-x-1 transition-transform">→</span>
-            </button>
-            <button className="w-full text-left px-4 py-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-border transition-colors group flex justify-between items-center">
-              <span className="text-sm font-medium text-gray-300 group-hover:text-white">Update Bank Details</span>
-              <span className="text-primary group-hover:translate-x-1 transition-transform">→</span>
-            </button>
-            <button className="w-full text-left px-4 py-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-border transition-colors group flex justify-between items-center">
-              <span className="text-sm font-medium text-gray-300 group-hover:text-white">View Active Contracts</span>
-              <span className="text-primary group-hover:translate-x-1 transition-transform">→</span>
-            </button>
+        <div className="space-y-6">
+          {/* AI Auditor Promo Card */}
+          <div className="relative overflow-hidden rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/15 via-black/50 to-purple-950/20 p-6 shadow-lg">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-xl bg-primary/20 text-primary border border-primary/30">
+                  <Bot className="h-5 w-5" />
+                </div>
+                <div>
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-primary">New Feature</span>
+                  <h3 className="text-base font-bold text-white flex items-center gap-1.5">
+                    AI Page Auditor
+                    <Sparkles className="h-4 w-4 text-amber-400" />
+                  </h3>
+                </div>
+              </div>
+            </div>
+            <p className="mt-3 text-xs text-gray-300 leading-relaxed">
+              Analyze your social links with AI to unlock virality scores, algorithmic hook critique, and sponsorship rate benchmarks.
+            </p>
+            <Link
+              to="/ai-audit"
+              className="mt-4 inline-flex items-center justify-between w-full px-4 py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-white text-xs font-semibold shadow-md transition-all group"
+            >
+              <span>Audit Your Page Now</span>
+              <ArrowUpRight className="h-4 w-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+            </Link>
+          </div>
+
+          {/* Quick Links */}
+          <div className="bg-black/40 backdrop-blur-md border border-border rounded-2xl p-6">
+            <h2 className="text-lg font-semibold text-white mb-4">Quick Links</h2>
+            <div className="space-y-3">
+              <Link 
+                to="/ai-audit" 
+                className="w-full text-left px-4 py-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-border transition-colors group flex justify-between items-center"
+              >
+                <span className="text-sm font-medium text-gray-300 group-hover:text-white flex items-center gap-2">
+                  <Bot className="h-4 w-4 text-primary" />
+                  AI Page Audit Report
+                </span>
+                <span className="text-primary group-hover:translate-x-1 transition-transform">→</span>
+              </Link>
+              <Link 
+                to="/portfolio-builder" 
+                className="w-full text-left px-4 py-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-border transition-colors group flex justify-between items-center"
+              >
+                <span className="text-sm font-medium text-gray-300 group-hover:text-white">Portfolio Builder</span>
+                <span className="text-primary group-hover:translate-x-1 transition-transform">→</span>
+              </Link>
+              <Link 
+                to="/contracts" 
+                className="w-full text-left px-4 py-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-border transition-colors group flex justify-between items-center"
+              >
+                <span className="text-sm font-medium text-gray-300 group-hover:text-white">View Active Contracts</span>
+                <span className="text-primary group-hover:translate-x-1 transition-transform">→</span>
+              </Link>
+            </div>
           </div>
         </div>
       </div>
