@@ -299,7 +299,7 @@ export default function CreatorPortfolio() {
             </div>
 
             {/* Template Selection Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5">
               {[
                 {
                   id: 'storyteller',
@@ -312,6 +312,18 @@ export default function CreatorPortfolio() {
                   previewHeader: 'bg-[#F7F5F0] text-[#141414]',
                   desc: 'Warm ivory editorial layout with bold grotesque typography ("OUT THERE. ALL IN."), widescreen landscape video hero, brand ticker, and high-impact coral CTA banner.',
                   tags: ['Editorial Grotesque', 'Widescreen Video', 'Brand Ticker']
+                },
+                {
+                  id: 'raycast',
+                  title: 'Raycast Command Deck',
+                  subtitle: 'Hardware & Mechanical Keyboard',
+                  badge: 'Hardware Deck',
+                  badgeColor: 'bg-[#FF6363]/20 text-[#FF6363] border-[#FF6363]/40',
+                  accentColor: '#FF6363',
+                  borderActive: 'border-[#FF6363] ring-2 ring-[#FF6363]/30',
+                  previewHeader: 'bg-[#07080A] text-white',
+                  desc: 'Pitch-black obsidian hardware aesthetic inspired by the Raycast mechanical keyboard, with custom keycap shortcuts, engineering spec sheet, and bento grid.',
+                  tags: ['Obsidian Black', 'Keycap Shortcuts', 'Hardware Spec', 'Bento Grid']
                 },
                 {
                   id: 'codecraft',

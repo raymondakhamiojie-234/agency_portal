@@ -11,6 +11,7 @@ import StorytellerTemplate from '../../components/portfolio-templates/Storytelle
 import CodeCraftTemplate from '../../components/portfolio-templates/CodeCraftTemplate';
 import EditorialTemplate from '../../components/portfolio-templates/EditorialTemplate';
 import BrutalistTemplate from '../../components/portfolio-templates/BrutalistTemplate';
+import RaycastTemplate from '../../components/portfolio-templates/RaycastTemplate';
 
 // Niche & Style Profile Interface
 interface NicheProfile {
@@ -464,6 +465,22 @@ export default function PublicPortfolio() {
             const el = document.getElementById(id);
             if (el) el.scrollIntoView({ behavior: 'smooth' });
           }}
+        />
+      )}
+
+      {activeTemplate === 'raycast' && (
+        <RaycastTemplate
+          portfolio={portfolio}
+          socialLinks={socialLinks}
+          featuredMedia={featuredMedia}
+          services={services}
+          creatorName={creatorName}
+          avatarUrl={avatarUrl}
+          roleTitle={roleTitle}
+          nicheProfile={nicheProfile}
+          primaryPlatform={primaryPlatform}
+          onOpenInquiry={openInquiryModal}
+          onPlayVideo={playVideo}
         />
       )}
 
