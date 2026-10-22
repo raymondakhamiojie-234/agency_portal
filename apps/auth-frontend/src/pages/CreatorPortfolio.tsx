@@ -14,7 +14,8 @@ import {
   CheckCircle, 
   Inbox, 
   Layers,
-  Palette
+  Palette,
+  ExternalLink
 } from 'lucide-react';
 
 export default function CreatorPortfolio() {
@@ -28,6 +29,7 @@ export default function CreatorPortfolio() {
     avatar_url: '',
     banner_url: '',
     theme_color: '#6366f1',
+    template_id: 'storyteller',
     primary_platform: 'Facebook',
     follower_count: 0,
     social_links: [],
@@ -57,6 +59,7 @@ export default function CreatorPortfolio() {
         const p = res.data.portfolio;
         setPortfolio({
           ...p,
+          template_id: p.template_id || 'storyteller',
           social_links: Array.isArray(p.social_links) ? p.social_links : (typeof p.social_links === 'string' ? JSON.parse(p.social_links) : []),
           featured_media: Array.isArray(p.featured_media) ? p.featured_media : (typeof p.featured_media === 'string' ? JSON.parse(p.featured_media) : []),
           services: Array.isArray(p.services) ? p.services : (typeof p.services === 'string' ? JSON.parse(p.services) : [])
@@ -275,6 +278,178 @@ export default function CreatorPortfolio() {
       {activeTab === 'editor' && (
         <form onSubmit={handleSave} className="space-y-8">
           
+          {/* Section: Design Template Selection */}
+          <div className="bg-black/40 backdrop-blur-md border border-border rounded-2xl p-6 space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-white/10">
+              <div>
+                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                  <Palette className="h-5 w-5 text-primary" />
+                  Choose Portfolio Design Template
+                </h2>
+                <p className="text-xs text-gray-400 mt-1">
+                  Select the aesthetic layout and visual styling that matches your personal brand and creator niche.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-400 font-mono">Current Style:</span>
+                <span className="px-3 py-1 rounded-full text-xs font-bold font-mono bg-primary/20 text-primary border border-primary/30 uppercase">
+                  {portfolio.template_id || 'storyteller'}
+                </span>
+              </div>
+            </div>
+
+            {/* Template Selection Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+              {[
+                {
+                  id: 'storyteller',
+                  title: 'Storyteller & Cinematic',
+                  subtitle: 'Official Figma Layout',
+                  badge: 'Figma Design',
+                  badgeColor: 'bg-[#E84A27]/20 text-[#E84A27] border-[#E84A27]/40',
+                  accentColor: '#E84A27',
+                  borderActive: 'border-[#E84A27] ring-2 ring-[#E84A27]/30',
+                  previewHeader: 'bg-[#F7F5F0] text-[#141414]',
+                  desc: 'Warm ivory editorial layout with bold grotesque typography ("OUT THERE. ALL IN."), widescreen landscape video hero, brand ticker, and high-impact coral CTA banner.',
+                  tags: ['Editorial Grotesque', 'Widescreen Video', 'Brand Ticker']
+                },
+                {
+                  id: 'codecraft',
+                  title: 'CodeCraft Tech & Pro',
+                  subtitle: 'High-Tech Dark Theme',
+                  badge: 'Modern Dark',
+                  badgeColor: 'bg-indigo-500/20 text-indigo-400 border-indigo-500/40',
+                  accentColor: '#6366f1',
+                  borderActive: 'border-indigo-500 ring-2 ring-indigo-500/30',
+                  previewHeader: 'bg-[#07070d] text-white',
+                  desc: 'Deep neon dark mode with purple/indigo aura, interactive code card ("const developer = { ... }"), technical skill progress bars, and tiered packages.',
+                  tags: ['Dark Neon', 'Interactive Code', 'Progress Bars']
+                },
+                {
+                  id: 'editorial',
+                  title: 'Cherie Luxury Magazine',
+                  subtitle: 'Fashion & Lifestyle',
+                  badge: 'Editorial Serif',
+                  badgeColor: 'bg-rose-500/20 text-rose-400 border-rose-500/40',
+                  accentColor: '#B82B2B',
+                  borderActive: 'border-rose-500 ring-2 ring-rose-500/30',
+                  previewHeader: 'bg-[#FFFDF9] text-[#221B1B]',
+                  desc: 'Luxury cream & crimson red magazine layout ("Where Creativity Meets Conversion"), italic serif display typography, and Polaroid gallery cards.',
+                  tags: ['Luxury Serif', 'Polaroid Gallery', 'Crimson Red']
+                },
+                {
+                  id: 'brutalist',
+                  title: 'Swiss Brutalist Deck',
+                  subtitle: 'Minimalist Graphic Design',
+                  badge: 'Swiss Grid',
+                  badgeColor: 'bg-red-500/20 text-red-400 border-red-500/40',
+                  accentColor: '#E53E3E',
+                  borderActive: 'border-red-500 ring-2 ring-red-500/30',
+                  previewHeader: 'bg-[#ECEAE6] text-[#0A0A0A]',
+                  desc: 'Stark Swiss graphic styling with concrete grey canvas, vermilion red stripes, interactive 3D card deck fanout hero ("WELCOME TO MY PORTFOLIO"), and structured borders.',
+                  tags: ['Swiss Brutalism', '3D Card Fanout', 'High Contrast']
+                }
+              ].map((template) => {
+                const isSelected = (portfolio.template_id || 'storyteller') === template.id;
+                return (
+                  <div
+                    key={template.id}
+                    onClick={() => setPortfolio({ ...portfolio, template_id: template.id })}
+                    className={`relative rounded-2xl border p-5 flex flex-col justify-between transition-all cursor-pointer group ${
+                      isSelected 
+                        ? `${template.borderActive} bg-white/[0.04] shadow-xl` 
+                        : 'border-white/10 bg-white/[0.01] hover:border-white/20 hover:bg-white/[0.02]'
+                    }`}
+                  >
+                    <div>
+                      {/* Mini Visual Preview Mockup */}
+                      <div className={`h-24 rounded-xl ${template.previewHeader} border border-black/10 p-3 flex flex-col justify-between relative overflow-hidden mb-4 shadow-sm`}>
+                        <div className="flex items-center justify-between text-[9px] font-mono font-bold tracking-wider">
+                          <span className="truncate">{template.title}</span>
+                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: template.accentColor }} />
+                        </div>
+                        <div className="space-y-1">
+                          <div className="h-2 w-3/4 rounded-full bg-black/20" />
+                          <div className="h-1.5 w-1/2 rounded-full bg-black/10" />
+                        </div>
+                        <div className="flex items-center justify-between pt-1">
+                          <span className="text-[8px] font-mono opacity-60">FALCUS MEDIA</span>
+                          <span className="text-[8px] font-bold px-1.5 py-0.5 rounded text-white" style={{ backgroundColor: template.accentColor }}>
+                            LIVE
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Header & Badges */}
+                      <div className="flex items-center justify-between gap-2 mb-2">
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold border ${template.badgeColor}`}>
+                          {template.badge}
+                        </span>
+                        {isSelected && (
+                          <span className="w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center">
+                            <Check className="w-3 h-3 stroke-[3]" />
+                          </span>
+                        )}
+                      </div>
+
+                      <h3 className="text-base font-bold text-white group-hover:text-primary transition-colors">
+                        {template.title}
+                      </h3>
+                      <p className="text-[11px] text-gray-400 font-mono mt-0.5 mb-2">
+                        {template.subtitle}
+                      </p>
+
+                      <p className="text-xs text-gray-400 leading-relaxed mb-4">
+                        {template.desc}
+                      </p>
+
+                      {/* Feature Tags */}
+                      <div className="flex flex-wrap gap-1.5 mb-4">
+                        {template.tags.map((t, idx) => (
+                          <span key={idx} className="text-[10px] font-mono bg-white/5 text-gray-400 px-2 py-0.5 rounded">
+                            {t}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Action Controls */}
+                    <div className="space-y-2 pt-3 border-t border-white/5">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setPortfolio({ ...portfolio, template_id: template.id });
+                        }}
+                        className={`w-full py-2 rounded-xl text-xs font-semibold tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                          isSelected
+                            ? 'bg-primary text-white font-bold shadow-md'
+                            : 'bg-white/5 hover:bg-white/10 text-gray-300'
+                        }`}
+                      >
+                        {isSelected ? <Check className="w-3.5 h-3.5" /> : null}
+                        <span>{isSelected ? 'Active Template' : 'Use This Template'}</span>
+                      </button>
+
+                      {portfolio.slug && (
+                        <a
+                          href={`/p/${portfolio.slug}?template=${template.id}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="w-full py-1.5 text-center text-[11px] font-mono text-gray-400 hover:text-white flex items-center justify-center gap-1 transition-colors"
+                        >
+                          <span>Preview Design</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
           {/* Section: URL & Visibility */}
           <div className="bg-black/40 backdrop-blur-md border border-border rounded-2xl p-6 space-y-6">
             <h2 className="text-lg font-semibold text-white flex items-center">

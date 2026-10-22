@@ -115,6 +115,8 @@ pool.connect()
             status VARCHAR(50) DEFAULT 'NEW',
             created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
           );
+
+          ALTER TABLE creator_portfolios ADD COLUMN IF NOT EXISTS template_id VARCHAR(50) DEFAULT 'storyteller';
         `);
         console.log('Portfolio tables migration successful');
       } catch(err) {

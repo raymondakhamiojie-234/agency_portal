@@ -84,8 +84,8 @@ router.get('/', requireAuth, async (req, res) => {
       `INSERT INTO creator_portfolios (
         user_id, slug, is_published, display_name, tagline, bio,
         primary_platform, follower_count, social_links, featured_media,
-        services, contact_email, theme_color
-      ) VALUES ($1, $2, true, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+        services, contact_email, theme_color, template_id
+      ) VALUES ($1, $2, true, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
       RETURNING *`,
       [
         userId,
@@ -102,7 +102,8 @@ router.get('/', requireAuth, async (req, res) => {
           { title: 'Dedicated Promotion', description: 'Full dedicated video review and pinned comment', price: '$1,200' }
         ]),
         user.email || '',
-        '#6366f1'
+        '#6366f1',
+        'storyteller'
       ]
     );
 
@@ -130,7 +131,8 @@ router.put('/', requireAuth, async (req, res) => {
     social_links,
     featured_media,
     services,
-    contact_email
+    contact_email,
+    template_id
   } = req.body;
 
   if (!slug) {
@@ -165,8 +167,9 @@ router.put('/', requireAuth, async (req, res) => {
         featured_media = $12,
         services = $13,
         contact_email = $14,
+        template_id = COALESCE($15, template_id, 'storyteller'),
         updated_at = NOW()
-      WHERE user_id = $15
+      WHERE user_id = $16
       RETURNING *`,
       [
         cleanSlug,
@@ -183,6 +186,7 @@ router.put('/', requireAuth, async (req, res) => {
         JSON.stringify(featured_media || []),
         JSON.stringify(services || []),
         contact_email || '',
+        template_id || 'storyteller',
         userId
       ]
     );
@@ -266,6 +270,7 @@ router.get('/public/:slug', async (req, res) => {
         p.tagline, p.bio,
         p.avatar_url, p.banner_url, p.theme_color, p.primary_platform,
         p.follower_count, p.social_links, p.featured_media, p.services,
+        COALESCE(p.template_id, 'storyteller') as template_id,
         p.created_at,
         u.name as agency_verified_name
        FROM creator_portfolios p
