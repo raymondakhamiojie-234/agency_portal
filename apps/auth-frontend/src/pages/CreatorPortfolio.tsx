@@ -316,14 +316,14 @@ export default function CreatorPortfolio() {
                 {
                   id: 'raycast',
                   title: 'Raycast Command Deck',
-                  subtitle: 'Hardware & Mechanical Keyboard',
-                  badge: 'Hardware Deck',
+                  subtitle: 'High-Tech Obsidian Media Kit',
+                  badge: 'Obsidian Dark',
                   badgeColor: 'bg-[#FF6363]/20 text-[#FF6363] border-[#FF6363]/40',
                   accentColor: '#FF6363',
                   borderActive: 'border-[#FF6363] ring-2 ring-[#FF6363]/30',
                   previewHeader: 'bg-[#07080A] text-white',
-                  desc: 'Pitch-black obsidian hardware aesthetic inspired by the Raycast mechanical keyboard, with custom keycap shortcuts, engineering spec sheet, and bento grid.',
-                  tags: ['Obsidian Black', 'Keycap Shortcuts', 'Hardware Spec', 'Bento Grid']
+                  desc: 'Pitch-black obsidian layout inspired by Raycast, featuring a widescreen video showreel hero, shortcut keycaps, audience retention curve, and production gear spec sheet.',
+                  tags: ['Obsidian Black', 'Video Showreel', 'Retention Curve', 'Production Specs']
                 },
                 {
                   id: 'codecraft',

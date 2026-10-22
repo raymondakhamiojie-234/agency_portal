@@ -5,19 +5,22 @@ import {
   Sparkles, 
   Sliders, 
   Zap, 
-  Volume2, 
-  VolumeX, 
   Cpu, 
   Terminal, 
-  Share2, 
   Radio, 
   Activity, 
   Check, 
   Copy, 
   ArrowRight,
   ShieldCheck,
-  Disc,
-  Globe
+  Globe,
+  Film,
+  TrendingUp,
+  Eye,
+  Clock,
+  Camera,
+  Mic,
+  Award
 } from 'lucide-react';
 
 interface RaycastTemplateProps {
@@ -34,8 +37,8 @@ interface RaycastTemplateProps {
   onPlayVideo: (url: string) => void;
 }
 
-// Synthetic Web Audio Mechanical Click Synthesizer
-function playMechanicalClick(type: 'click' | 'bottom' | 'space' = 'click') {
+// Subtle Tactile Audio Feedback for Keycaps & CTAs
+function playTactileFeedback(type: 'click' | 'bottom' | 'space' = 'click') {
   try {
     const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
     if (!AudioCtx) return;
@@ -47,67 +50,45 @@ function playMechanicalClick(type: 'click' | 'bottom' | 'space' = 'click') {
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     const filter = ctx.createBiquadFilter();
-
     const now = ctx.currentTime;
 
     if (type === 'space') {
-      // Deeper thock for spacebar / big buttons
       osc.type = 'triangle';
-      osc.frequency.setValueAtTime(220, now);
-      osc.frequency.exponentialRampToValueAtTime(70, now + 0.08);
+      osc.frequency.setValueAtTime(240, now);
+      osc.frequency.exponentialRampToValueAtTime(80, now + 0.07);
 
       filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(800, now);
-
-      gain.gain.setValueAtTime(0.2, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
-
-      osc.connect(filter);
-      filter.connect(gain);
-      gain.connect(ctx.destination);
-
-      osc.start(now);
-      osc.stop(now + 0.09);
-    } else if (type === 'bottom') {
-      // Crisp bottom-out clack
-      osc.type = 'square';
-      osc.frequency.setValueAtTime(600, now);
-      osc.frequency.exponentialRampToValueAtTime(120, now + 0.05);
-
-      filter.type = 'bandpass';
-      filter.frequency.setValueAtTime(1400, now);
-      filter.Q.setValueAtTime(2, now);
-
-      gain.gain.setValueAtTime(0.12, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
-
-      osc.connect(filter);
-      filter.connect(gain);
-      gain.connect(ctx.destination);
-
-      osc.start(now);
-      osc.stop(now + 0.06);
-    } else {
-      // Standard tactile mechanical switch click
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(1800, now);
-      osc.frequency.exponentialRampToValueAtTime(200, now + 0.04);
-
-      filter.type = 'highpass';
       filter.frequency.setValueAtTime(900, now);
 
-      gain.gain.setValueAtTime(0.15, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+      gain.gain.setValueAtTime(0.18, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
 
       osc.connect(filter);
       filter.connect(gain);
       gain.connect(ctx.destination);
 
       osc.start(now);
-      osc.stop(now + 0.05);
+      osc.stop(now + 0.08);
+    } else {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(1400, now);
+      osc.frequency.exponentialRampToValueAtTime(240, now + 0.035);
+
+      filter.type = 'highpass';
+      filter.frequency.setValueAtTime(800, now);
+
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.035);
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.04);
     }
   } catch (_e) {
-    // Ignore audio restrictions
+    // Graceful fallback if audio blocked
   }
 }
 
@@ -123,15 +104,12 @@ export default function RaycastTemplate({
   onOpenInquiry,
   onPlayVideo
 }: RaycastTemplateProps) {
-  const [soundEnabled, setSoundEnabled] = useState(true);
   const [activeKeycap, setActiveKeycap] = useState<string>('⌘1');
   const [copiedLink, setCopiedLink] = useState(false);
-  const [activeSpecTab, setActiveSpecTab] = useState<'performance' | 'hardware' | 'workflow'>('performance');
+  const [activeSpecTab, setActiveSpecTab] = useState<'audience' | 'gear' | 'workflow'>('audience');
 
   const triggerClick = (type: 'click' | 'bottom' | 'space' = 'click') => {
-    if (soundEnabled) {
-      playMechanicalClick(type);
-    }
+    playTactileFeedback(type);
   };
 
   // Follower stats calculation
@@ -156,19 +134,24 @@ export default function RaycastTemplate({
     setTimeout(() => setCopiedLink(false), 2000);
   };
 
-  // Preset Raycast Keycap Shortcuts mapped to creator actions
+  // Primary featured video / showreel
+  const heroVideo = featuredMedia && featuredMedia.length > 0 ? featuredMedia[0] : null;
+  const heroVideoUrl = heroVideo?.url || heroVideo?.video_url || '';
+  const heroThumbnail = heroVideo?.thumbnail_url || portfolio?.banner_url || 'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=1600&q=80';
+
+  // Creator Shortcuts mapped to sponsorship deliverables
   const shortcuts = [
-    { key: '⌘1', label: 'Hyper Sponsor', desc: 'Prime video integration with custom script', serviceMatch: 'Sponsored Integration' },
-    { key: '⌘2', label: 'Dedicated Clip', desc: 'Full deep-dive showcase and distribution', serviceMatch: 'Dedicated Promotion' },
-    { key: '⌘3', label: 'Tech Review', desc: 'Honest hands-on hardware & software benchmark', serviceMatch: 'Tech Review' },
-    { key: '⌘4', label: 'Keynote & Panel', desc: 'Creator keynote, conference or live hosting', serviceMatch: 'Speaking & Event' },
-    { key: 'HYPER', label: 'Full Campaign', desc: 'Multi-platform syndicate takeover', serviceMatch: 'Brand Ambassador' }
+    { key: '⌘1', label: 'Sponsored Integration', desc: '60s natural narrative segment placed in prime content hook', serviceMatch: 'Sponsored Integration' },
+    { key: '⌘2', label: 'Dedicated Showcase', desc: 'Full deep-dive video with hands-on testing and 30-day licensing', serviceMatch: 'Dedicated Promotion' },
+    { key: '⌘3', label: 'Vertical Syndicate', desc: '3x viral vertical videos optimized for TikTok, Reels & Shorts', serviceMatch: 'Shorts & TikTok Syndicate' },
+    { key: '⌘4', label: 'Keynote & Event', desc: 'Live hosting, conference keynote, or live stream collaboration', serviceMatch: 'Speaking & Event' },
+    { key: 'HYPER', label: 'Quarterly Ambassador', desc: 'Multi-platform exclusive campaign with product co-development', serviceMatch: 'Brand Ambassador' }
   ];
 
   return (
     <div className="min-h-screen bg-[#07080A] text-[#EDEEF0] font-sans selection:bg-[#FF6363] selection:text-white relative overflow-x-hidden antialiased">
       
-      {/* Background Micro Mesh & Subtle Vignette */}
+      {/* Background Micro Mesh & Vignette */}
       <div 
         className="fixed inset-0 pointer-events-none z-0 opacity-40"
         style={{
@@ -182,7 +165,7 @@ export default function RaycastTemplate({
         }}
       />
 
-      {/* TOP NOTIFICATION / SYSTEM BAR */}
+      {/* TOP STATUS BAR */}
       <div className="relative z-20 border-b border-white/[0.06] bg-[#0A0C10]/80 backdrop-blur-md px-4 py-2 text-xs font-mono">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -190,39 +173,18 @@ export default function RaycastTemplate({
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF6363] opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-[#FF6363]"></span>
             </span>
-            <span className="text-[#8A8F98] hidden sm:inline">OFFICIAL RAYCAST KEYBOARD EDITION</span>
+            <span className="text-[#8A8F98] hidden sm:inline">OFFICIAL CREATOR MEDIA KIT & PORTFOLIO</span>
             <span className="text-[#555A65]">/</span>
             <span className="text-white font-semibold">{creatorName}</span>
           </div>
 
           <div className="flex items-center gap-4 text-[#8A8F98]">
-            <span className="hidden md:flex items-center gap-1.5">
+            <span className="flex items-center gap-1.5">
               <Activity className="w-3.5 h-3.5 text-[#FF6363]" />
-              <span>ENGAGEMENT: <strong className="text-white font-mono">HIGH</strong></span>
+              <span>SPONSOR STATUS: <strong className="text-emerald-400 font-mono">OPEN</strong></span>
             </span>
             <span className="hidden sm:inline text-[#555A65]">|</span>
-            {/* Audio switch toggle */}
-            <button
-              onClick={() => {
-                const nextState = !soundEnabled;
-                setSoundEnabled(nextState);
-                if (nextState) playMechanicalClick('click');
-              }}
-              className="flex items-center gap-1.5 hover:text-white transition-colors px-2 py-0.5 rounded bg-white/[0.04] border border-white/[0.08]"
-              title="Toggle Mechanical Key Sounds"
-            >
-              {soundEnabled ? (
-                <>
-                  <Volume2 className="w-3.5 h-3.5 text-[#FF6363]" />
-                  <span>CLICK FX: ON</span>
-                </>
-              ) : (
-                <>
-                  <VolumeX className="w-3.5 h-3.5 text-[#555A65]" />
-                  <span>CLICK FX: OFF</span>
-                </>
-              )}
-            </button>
+            <span className="hidden md:inline text-white font-mono">{formattedFollowers} VERIFIED REACH</span>
           </div>
         </div>
       </div>
@@ -231,9 +193,9 @@ export default function RaycastTemplate({
       <header className="sticky top-0 z-40 bg-[#07080A]/85 backdrop-blur-xl border-b border-white/[0.08]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           
-          {/* Brand & Creator Identity */}
+          {/* Creator Identity */}
           <div className="flex items-center gap-3.5">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#1C1E24] to-[#121316] border border-white/10 p-0.5 shadow-lg flex items-center justify-center relative overflow-hidden group">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#1C1E24] to-[#121316] border border-white/10 p-0.5 shadow-lg flex items-center justify-center relative overflow-hidden group">
               <img 
                 src={avatarUrl} 
                 alt={creatorName} 
@@ -245,11 +207,11 @@ export default function RaycastTemplate({
               <div className="flex items-center gap-2">
                 <span className="font-bold text-sm tracking-tight text-white">{creatorName}</span>
                 <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-[#FF6363]/15 text-[#FF6363] border border-[#FF6363]/30">
-                  DECK v2.4
+                  VERIFIED
                 </span>
               </div>
               <p className="text-[11px] font-mono text-[#8A8F98] truncate max-w-[200px] sm:max-w-none">
-                {roleTitle || 'Hardware & Tech Creator'}
+                {roleTitle || 'Digital Content Creator & Filmmaker'}
               </p>
             </div>
           </div>
@@ -275,14 +237,14 @@ export default function RaycastTemplate({
               onClick={() => triggerClick('click')}
               className="hover:text-white transition-colors"
             >
-              Specs
+              Production Specs
             </a>
             <a 
               href="#bento" 
               onClick={() => triggerClick('click')}
               className="hover:text-white transition-colors"
             >
-              Hardware
+              Audience & Growth
             </a>
             <a 
               href="#deliverables" 
@@ -309,7 +271,7 @@ export default function RaycastTemplate({
               }}
               className="group relative inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#FF6363] hover:bg-[#FF4848] text-white font-medium text-xs tracking-wide shadow-[0_0_20px_rgba(255,99,99,0.35)] transition-all active:scale-[0.98]"
             >
-              <span>Command Deck</span>
+              <span>Book Collaboration</span>
               <kbd className="hidden sm:inline-block px-1.5 py-0.5 rounded bg-black/20 text-[10px] font-mono border border-black/10">
                 ⌘K
               </kbd>
@@ -321,20 +283,20 @@ export default function RaycastTemplate({
       {/* MAIN CONTENT AREA */}
       <main className="relative z-10">
 
-        {/* HERO SECTION: Tactile Control. Infinite Reach. */}
+        {/* HERO SECTION: Content Creator Showreel Showcase */}
         <section id="overview" className="pt-16 pb-20 md:pt-24 md:pb-32 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center relative">
           
-          {/* Eyebrow Hardware Pill */}
+          {/* Eyebrow Creator Badge */}
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#141519] border border-white/10 text-xs font-mono text-[#8A8F98] mb-8 shadow-inner">
             <span className="w-2 h-2 rounded-full bg-[#FF6363]" />
-            <span>RAYCAST MECHANICAL HARDWARE EDITION</span>
+            <span>VERIFIED DIGITAL CONTENT CREATOR</span>
             <span className="text-white/20">•</span>
-            <span className="text-[#FF6363] font-semibold">{formattedFollowers} VERIFIED REACH</span>
+            <span className="text-[#FF6363] font-semibold">{formattedFollowers} VERIFIED AUDIENCE</span>
           </div>
 
-          {/* Large Hero Typography */}
+          {/* Hero Typography */}
           <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tight text-white max-w-5xl mx-auto leading-[1.05]">
-            Tactile Control. <br className="hidden sm:inline" />
+            High-Impact Content. <br className="hidden sm:inline" />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-[#EDEEF0] to-[#8A8F98]">
               Precision by Design.
             </span>
@@ -342,7 +304,7 @@ export default function RaycastTemplate({
 
           {/* Bio / Subtitle */}
           <p className="mt-6 sm:mt-8 text-base sm:text-xl text-[#8A8F98] max-w-2xl mx-auto font-normal leading-relaxed">
-            {portfolio.tagline || nicheProfile?.ctaDesc || 'Every keycap, cut, and content frame engineered for high-velocity engagement and direct conversions.'}
+            {portfolio.tagline || nicheProfile?.ctaDesc || 'Collaborating with leading brands on high-retention video integrations, dedicated reviews, and cross-platform storytelling.'}
           </p>
 
           {/* Hero CTAs */}
@@ -361,11 +323,11 @@ export default function RaycastTemplate({
               </kbd>
             </button>
 
-            {featuredMedia && featuredMedia.length > 0 && (
+            {heroVideoUrl && (
               <button
                 onClick={() => {
                   triggerClick('bottom');
-                  onPlayVideo(featuredMedia[0]?.url || featuredMedia[0]?.video_url || '');
+                  onPlayVideo(heroVideoUrl);
                 }}
                 className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-2xl bg-[#141519] hover:bg-[#1C1E24] text-white font-semibold text-sm border border-white/10 shadow-lg transition-all hover:-translate-y-0.5 active:translate-y-0"
               >
@@ -378,42 +340,77 @@ export default function RaycastTemplate({
             )}
           </div>
 
-          {/* CENTRAL HARDWARE KEYBOARD DESK RENDER */}
+          {/* CENTRAL CREATOR SHOWREEL / FEATURED VIDEO DISPLAY */}
           <div className="mt-16 sm:mt-20 relative max-w-5xl mx-auto">
             {/* Ambient Coral Underglow */}
             <div className="absolute -inset-4 sm:-inset-8 bg-gradient-to-b from-[#FF6363]/25 via-[#FF6363]/5 to-transparent rounded-[3rem] blur-3xl opacity-60 pointer-events-none" />
 
-            {/* Hardware Keyboard Image / Visual Frame */}
-            <div className="relative rounded-3xl bg-[#0D0E12] border border-white/10 p-3 sm:p-5 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9)] overflow-hidden group">
+            {/* Cinematic Video Showcase Frame */}
+            <div 
+              onClick={() => {
+                if (heroVideoUrl) {
+                  triggerClick('bottom');
+                  onPlayVideo(heroVideoUrl);
+                }
+              }}
+              className={`relative rounded-3xl bg-[#0D0E12] border border-white/10 p-3 sm:p-5 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9)] overflow-hidden group ${
+                heroVideoUrl ? 'cursor-pointer' : ''
+              }`}
+            >
               <div className="relative aspect-[16/9] w-full rounded-2xl overflow-hidden bg-[#07080A] flex items-center justify-center border border-white/[0.04]">
                 
-                {/* Raycast Official Keyboard Image */}
+                {/* Video Thumbnail */}
                 <img 
-                  src="https://www.raycast.com/_next/image?url=%2F_next%2Fstatic%2Fimmutable%2Fmedia%2Fkeyboard.3roupfa132r28.png&w=1920&q=95" 
-                  alt="Raycast Keyboard Hardware Deck"
-                  className="w-full h-full object-contain object-center scale-[1.02] group-hover:scale-105 transition-transform duration-700 ease-out"
+                  src={heroThumbnail} 
+                  alt={creatorName}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out brightness-90 group-hover:brightness-100"
                 />
 
-                {/* Overlaid Hardware Telemetry HUD */}
-                <div className="absolute top-4 left-4 flex items-center gap-2 px-3 py-1.5 rounded-lg bg-black/60 backdrop-blur-md border border-white/10 text-[11px] font-mono text-[#8A8F98]">
-                  <Disc className="w-3.5 h-3.5 text-[#FF6363] animate-spin" />
-                  <span>SWITCH: GATERON OIL KING (LUBED)</span>
+                {/* Dark Vignette Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/60 pointer-events-none" />
+
+                {/* Centered Glowing Play Trigger */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[#FF6363] text-white flex items-center justify-center shadow-[0_0_40px_rgba(255,99,99,0.7)] group-hover:scale-110 transition-all duration-300">
+                    <Play className="w-7 h-7 sm:w-8 sm:h-8 fill-white ml-1" />
+                  </div>
                 </div>
 
-                <div className="absolute bottom-4 right-4 hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-black/60 backdrop-blur-md border border-white/10 text-[11px] font-mono text-[#8A8F98]">
-                  <Radio className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>2.4GHZ ULTRA LOW LATENCY</span>
+                {/* Overlaid Telemetry HUD */}
+                <div className="absolute top-4 left-4 flex items-center gap-2 px-3 py-1.5 rounded-lg bg-black/70 backdrop-blur-md border border-white/10 text-[11px] font-mono text-white">
+                  <span className="w-2 h-2 rounded-full bg-[#FF6363] animate-pulse" />
+                  <span>4K 60FPS • CINEMA RIG</span>
+                </div>
+
+                <div className="absolute top-4 right-4 flex items-center gap-2 px-3 py-1.5 rounded-lg bg-black/70 backdrop-blur-md border border-white/10 text-[11px] font-mono text-white">
+                  <Film className="w-3.5 h-3.5 text-[#FF6363]" />
+                  <span>OFFICIAL SHOWREEL</span>
+                </div>
+
+                {/* Bottom Video Meta Bar */}
+                <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between text-left px-3 py-2 rounded-xl bg-black/60 backdrop-blur-md border border-white/10 text-xs font-mono text-[#8A8F98]">
+                  <div className="truncate max-w-[70%]">
+                    <span className="text-white font-bold block truncate">
+                      {heroVideo?.title || `${creatorName} // Commercial Showreel & Portfolio`}
+                    </span>
+                    <span className="text-[10px] text-[#8A8F98] hidden sm:inline">
+                      Click to launch full high-definition video player
+                    </span>
+                  </div>
+                  <span className="text-[#FF6363] font-bold text-[11px] shrink-0">
+                    WATCH NOW [ SPACE ]
+                  </span>
                 </div>
               </div>
             </div>
 
-            {/* Quick Spec Metrics Bar */}
+            {/* Quick Creator Performance Metrics Bar */}
             <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
               {[
-                { label: 'OPERATING FORCE', val: '45gf Linear', sub: 'Instant content turnaround' },
-                { label: 'BATTERY LIFETIME', val: '1,200 hrs', sub: 'High stamina production' },
-                { label: 'CHASSIS', val: 'CNC Aluminum', sub: 'Anodized matte obsidian' },
-                { label: 'POLLING RATE', val: '1,000 Hz', sub: 'Zero latency response' }
+                { label: 'TOTAL AUDIENCE REACH', val: formattedFollowers, sub: 'Cross-platform total community' },
+                { label: 'AVERAGE RETENTION', val: '74.2%', sub: 'High viewer watch-time' },
+                { label: 'PRODUCTION RIG', val: 'Sony FX3', sub: '10-bit 4K 120fps Cinema Line' },
+                { label: 'AVERAGE TURNAROUND', val: '48–72h', sub: 'From brief to final delivery' }
               ].map((m, idx) => (
                 <div 
                   key={idx}
@@ -429,24 +426,24 @@ export default function RaycastTemplate({
           </div>
         </section>
 
-        {/* SECTION 1: SHORTCUTS IN PLAIN SIGHT */}
+        {/* SECTION 1: SPONSORSHIP SHORTCUTS */}
         <section id="shortcuts" className="py-20 md:py-28 border-t border-white/[0.06] bg-[#0A0B0E]/60 relative">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             
             <div className="max-w-2xl mb-12">
               <div className="inline-flex items-center gap-2 text-xs font-mono text-[#FF6363] uppercase tracking-wider mb-3">
                 <Terminal className="w-3.5 h-3.5" />
-                <span>Custom Keycap Shortcuts</span>
+                <span>Instant Collaboration Shortcuts</span>
               </div>
               <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight">
-                Your shortcuts in plain sight.
+                Deliverables in plain sight.
               </h2>
               <p className="mt-4 text-[#8A8F98] text-base leading-relaxed">
-                Click any keycap to inspect creator deliverables, instant sponsor integrations, and live collaboration specs.
+                Click any shortcut key to inspect package deliverables, turnaround timelines, and instant proposal booking.
               </p>
             </div>
 
-            {/* Interactive Mechanical Keycap Deck */}
+            {/* Interactive Keycap Deck */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
               {shortcuts.map((sc) => {
                 const isActive = activeKeycap === sc.key;
@@ -483,7 +480,7 @@ export default function RaycastTemplate({
                     </div>
 
                     <div className="mt-4 pt-3 border-t border-white/[0.06] flex items-center justify-between text-[11px] font-mono text-[#FF6363]">
-                      <span>SELECT KEY</span>
+                      <span>SELECT TIER</span>
                       <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
                     </div>
                   </button>
@@ -491,7 +488,7 @@ export default function RaycastTemplate({
               })}
             </div>
 
-            {/* Active Keycap Detail Inspector Bar */}
+            {/* Active Shortcut Detail Inspector Bar */}
             <div className="mt-8 p-6 rounded-2xl bg-[#0D0E14] border border-white/10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
               <div className="flex items-start gap-4">
                 <div className="w-12 h-12 rounded-xl bg-[#1C1E26] border border-white/10 flex items-center justify-center font-mono font-black text-xl text-[#FF6363] shadow-inner shrink-0">
@@ -499,7 +496,7 @@ export default function RaycastTemplate({
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-mono text-[#8A8F98]">ASSIGNED WORKFLOW:</span>
+                    <span className="text-xs font-mono text-[#8A8F98]">ACTIVE CAMPAIGN TIER:</span>
                     <span className="text-sm font-bold text-white">
                       {shortcuts.find(s => s.key === activeKeycap)?.label}
                     </span>
@@ -520,32 +517,32 @@ export default function RaycastTemplate({
                   className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#FF6363] hover:bg-[#FF4848] text-white font-semibold text-xs tracking-wide transition-all shadow-md"
                 >
                   <Cpu className="w-3.5 h-3.5" />
-                  <span>Execute Shortcut ({activeKeycap})</span>
+                  <span>Book Package ({activeKeycap})</span>
                 </button>
               </div>
             </div>
           </div>
         </section>
 
-        {/* SECTION 2: TECHNICAL SPEC SHEET (MECHANICAL PRECISION) */}
+        {/* SECTION 2: PRODUCTION STANDARDS & SPEC SHEET */}
         <section id="specs" className="py-20 md:py-28 border-t border-white/[0.06] bg-[#07080A] relative">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             
             <div className="text-center max-w-3xl mx-auto mb-16">
               <div className="inline-flex items-center gap-2 text-xs font-mono text-[#FF6363] uppercase tracking-wider mb-3">
                 <Sliders className="w-3.5 h-3.5" />
-                <span>Engineering Spec Sheet</span>
+                <span>Production Standards</span>
               </div>
               <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight">
-                Mechanical feel. Precision by design.
+                Production Standards. Precision by design.
               </h2>
               <p className="mt-4 text-[#8A8F98] text-base">
-                Engineered from the ground up for reliable audience retention, clean production aesthetics, and high ROI partnerships.
+                Every camera angle, lighting setup, audio track, and script outline is calibrated for commercial broadcast fidelity and high sponsor conversion.
               </p>
 
               {/* Spec Category Selector */}
               <div className="mt-8 inline-flex p-1 rounded-xl bg-[#121319] border border-white/10">
-                {(['performance', 'hardware', 'workflow'] as const).map((tab) => (
+                {(['audience', 'gear', 'workflow'] as const).map((tab) => (
                   <button
                     key={tab}
                     onClick={() => {
@@ -567,14 +564,14 @@ export default function RaycastTemplate({
             {/* Spec Tables */}
             <div className="max-w-4xl mx-auto rounded-3xl bg-[#0C0D12] border border-white/10 overflow-hidden shadow-2xl">
               <div className="p-6 sm:p-8">
-                {activeSpecTab === 'performance' && (
+                {activeSpecTab === 'audience' && (
                   <div className="divide-y divide-white/[0.06]">
                     {[
-                      { param: 'Audience Reach', spec: formattedFollowers, detail: 'Cross-platform total subscribers and followers' },
+                      { param: 'Total Audience Reach', spec: formattedFollowers, detail: 'Cross-platform verified subscribers and followers' },
                       { param: 'Average Turnaround', spec: '48 to 72 Hours', detail: 'From signed brief to full 4K draft delivery' },
-                      { param: 'Engagement Rate', spec: '7.8% - 12.4%', detail: 'Industry leading active audience retention' },
-                      { param: 'Primary Demographic', spec: 'Ages 18–35 (74%)', detail: 'Tech enthusiasts, engineers, builders, creators' },
-                      { param: 'Direct Link Conversions', spec: 'High-intent CTR', detail: 'Trackable UTM tags, dedicated discount codes' }
+                      { param: 'Engagement Rate', spec: '7.8% - 12.4%', detail: 'Industry-leading active community retention' },
+                      { param: 'Primary Demographic', spec: 'Ages 18–35 (76%)', detail: 'Tech enthusiasts, engineers, builders, early adopters' },
+                      { param: 'Direct Link Conversions', spec: 'High-Intent CTR', detail: 'Trackable UTM tags, dedicated discount codes' }
                     ].map((row, i) => (
                       <div key={i} className="py-4 sm:py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <div className="sm:w-1/3">
@@ -591,14 +588,14 @@ export default function RaycastTemplate({
                   </div>
                 )}
 
-                {activeSpecTab === 'hardware' && (
+                {activeSpecTab === 'gear' && (
                   <div className="divide-y divide-white/[0.06]">
                     {[
-                      { param: 'Camera Rig', spec: 'Sony FX3 Cinema Line', detail: 'Full-frame 4K 120p, 10-bit 4:2:2 S-Log3' },
-                      { param: 'Audio Capture', spec: 'Shure SM7B + Cloudlifter', detail: 'Broadcast-grade vocal clarity & noise rejection' },
-                      { param: 'Studio Lighting', spec: 'Aputure 300d II + Light Dome', detail: 'High CRI 96+ soft diffused daylight key' },
-                      { param: 'Editing Rig', spec: 'Apple M3 Max 128GB Unified', detail: 'Real-time DaVinci Resolve Studio color grading' },
-                      { param: 'Color Space', spec: 'DCI-P3 & Rec.709 Calibrated', detail: 'Professional display-ready color fidelity' }
+                      { param: 'Cinema Camera Rig', spec: 'Sony FX3 Cinema Line', detail: 'Full-frame 4K 120p, 10-bit 4:2:2 S-Log3' },
+                      { param: 'B-Roll & Macro', spec: 'Sony 90mm f/2.8 Macro', detail: 'Ultra-crisp product closeups & texture shots' },
+                      { param: 'Broadcast Audio', spec: 'Shure SM7B + Cloudlifter', detail: 'Studio-grade vocal clarity & noise rejection' },
+                      { param: 'Lighting Setup', spec: 'Aputure 300d II + Light Dome', detail: 'High CRI 96+ soft diffused daylight key' },
+                      { param: 'Color Calibration', spec: 'DaVinci Resolve DCI-P3', detail: 'Accurate brand product color grading' }
                     ].map((row, i) => (
                       <div key={i} className="py-4 sm:py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <div className="sm:w-1/3">
@@ -618,11 +615,11 @@ export default function RaycastTemplate({
                 {activeSpecTab === 'workflow' && (
                   <div className="divide-y divide-white/[0.06]">
                     {[
-                      { param: 'Brief Review', spec: 'Day 1: Alignment', detail: 'Script outline, talking points & positioning review' },
-                      { param: 'Production Phase', spec: 'Day 2-3: Shoot & Grade', detail: 'Multi-cam recording, B-roll captures, sound design' },
-                      { param: 'Rough Cut Delivery', spec: 'Day 4: Internal Review', detail: 'Frame.io link with timestamped feedback comments' },
-                      { param: 'Final Release', spec: 'Day 5-6: Live Syndicate', detail: 'Coordinated publish time with pinned sponsor link' },
-                      { param: 'Analytics Report', spec: 'Day 14: Performance Deck', detail: 'Impressions, reach, retention & conversion metrics' }
+                      { param: 'Phase 01: Brief Review', spec: 'Day 1: Alignment', detail: 'Script outline, talking points & positioning review' },
+                      { param: 'Phase 02: Production Shoot', spec: 'Day 2-3: Shoot & Grade', detail: 'Multi-cam recording, B-roll captures, sound design' },
+                      { param: 'Phase 03: Rough Cut Review', spec: 'Day 4: Frame.io Link', detail: 'Private link with timestamped brand feedback' },
+                      { param: 'Phase 04: Live Release', spec: 'Day 5-6: Live Syndicate', detail: 'Coordinated publish time with pinned sponsor link' },
+                      { param: 'Phase 05: Analytics Report', spec: 'Day 14: Performance Deck', detail: 'Impressions, reach, retention & conversion metrics' }
                     ].map((row, i) => (
                       <div key={i} className="py-4 sm:py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <div className="sm:w-1/3">
@@ -640,7 +637,7 @@ export default function RaycastTemplate({
                 )}
               </div>
 
-              {/* Bottom Spec Footer with Interactive Audio Clack */}
+              {/* Bottom Spec Footer */}
               <div className="bg-[#121319] border-t border-white/[0.06] px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
@@ -648,138 +645,172 @@ export default function RaycastTemplate({
                 </div>
                 <button
                   onClick={() => {
-                    playMechanicalClick('space');
-                    playMechanicalClick('bottom');
+                    triggerClick('space');
+                    onOpenInquiry();
                   }}
                   className="text-xs font-mono text-[#FF6363] hover:text-white flex items-center gap-1.5 transition-colors"
                 >
-                  <Volume2 className="w-3.5 h-3.5" />
-                  <span>Test switch sound sample</span>
+                  <Award className="w-3.5 h-3.5" />
+                  <span>Request Custom Sponsorship Terms</span>
                 </button>
               </div>
             </div>
           </div>
         </section>
 
-        {/* SECTION 3: RAYCAST BENTO GRID */}
+        {/* SECTION 3: CREATOR BENTO GRID (AUDIENCE & PRODUCTION) */}
         <section id="bento" className="py-20 md:py-28 border-t border-white/[0.06] bg-[#0A0B0E]/80 relative">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             
             <div className="max-w-2xl mb-14">
               <div className="inline-flex items-center gap-2 text-xs font-mono text-[#FF6363] uppercase tracking-wider mb-3">
                 <Cpu className="w-3.5 h-3.5" />
-                <span>Modular Architecture</span>
+                <span>Audience & Production Architecture</span>
               </div>
               <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight">
-                Remarkably slim. Big on features.
+                High-Retention Storytelling.
               </h2>
               <p className="mt-4 text-[#8A8F98] text-base leading-relaxed">
-                Every component is tuned for rapid integration, crystal clear clarity, and maximum sponsor ROI.
+                Tuned for fast narrative hook delivery, crystal-clear commercial audio, and authentic product endorsements.
               </p>
             </div>
 
-            {/* Bento Grid Layout */}
+            {/* Bento Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               
-              {/* Card 1: Rotary Dial / Reach */}
+              {/* Card 1: High Retention Graph */}
               <div className="md:col-span-2 rounded-3xl bg-[#0D0E14] border border-white/10 p-8 relative overflow-hidden flex flex-col justify-between group">
                 <div className="relative z-10 max-w-md">
                   <div className="w-10 h-10 rounded-xl bg-white/[0.05] border border-white/10 flex items-center justify-center text-[#FF6363] mb-6">
-                    <Sliders className="w-5 h-5" />
+                    <TrendingUp className="w-5 h-5" />
                   </div>
-                  <span className="text-xs font-mono text-[#8A8F98] uppercase">Tuning Dial</span>
+                  <span className="text-xs font-mono text-[#8A8F98] uppercase">Audience Retention Curve</span>
                   <h3 className="text-2xl sm:text-3xl font-bold text-white mt-1">
-                    Direct volume & audience tuning.
+                    Organic Integration. Zero Fluff.
                   </h3>
                   <p className="text-sm text-[#8A8F98] mt-3 leading-relaxed">
-                    Custom integrations that seamlessly blend into natural creator storytelling. No disruptive ad breaks — just genuine endorsements that drive clicks.
+                    Custom integrations that seamlessly weave into natural video storylines. No jarring ad reads — authentic endorsements that protect viewer trust and convert.
                   </p>
                 </div>
 
-                <div className="mt-8 pt-6 border-t border-white/[0.06] flex items-center gap-6 relative z-10">
+                {/* SVG Retention Graph Representation */}
+                <div className="mt-8 relative z-10 pt-4 border-t border-white/[0.06]">
+                  <div className="flex items-center justify-between text-xs font-mono text-[#8A8F98] mb-2">
+                    <span>VIDEO TIMELINE (0:00 - 10:00)</span>
+                    <span className="text-[#FF6363] font-bold">94% HOOK RETENTION</span>
+                  </div>
+                  <div className="h-16 w-full rounded-xl bg-[#07080A] border border-white/5 p-2 flex items-end gap-1.5 overflow-hidden">
+                    {[95, 93, 91, 88, 86, 84, 85, 87, 82, 80, 78, 77, 75, 74, 76, 73, 72, 70, 71, 69, 68].map((val, i) => (
+                      <div 
+                        key={i} 
+                        style={{ height: `${val}%` }} 
+                        className={`flex-1 rounded-t transition-all ${
+                          i >= 5 && i <= 8 ? 'bg-[#FF6363]' : 'bg-white/20'
+                        }`}
+                        title={`Segment ${i}: ${val}% retention`}
+                      />
+                    ))}
+                  </div>
+                  <div className="flex items-center justify-between text-[10px] font-mono text-[#555A65] mt-2">
+                    <span>Hook Window</span>
+                    <span className="text-[#FF6363] font-bold">★ SPONSOR SEGMENT</span>
+                    <span>Outro & CTA</span>
+                  </div>
+                </div>
+
+                <div className="mt-6 pt-4 border-t border-white/[0.06] flex items-center gap-6 relative z-10">
                   <div>
-                    <span className="text-[11px] font-mono text-[#8A8F98]">ACCURACY</span>
-                    <p className="text-lg font-bold font-mono text-white">99.4%</p>
+                    <span className="text-[11px] font-mono text-[#8A8F98]">AVERAGE WATCH TIME</span>
+                    <p className="text-lg font-bold font-mono text-white">74.2%</p>
                   </div>
                   <div className="w-px h-8 bg-white/10" />
                   <div>
                     <span className="text-[11px] font-mono text-[#8A8F98]">BRAND RECALL</span>
-                    <p className="text-lg font-bold font-mono text-white">3.4x Avg</p>
+                    <p className="text-lg font-bold font-mono text-white">3.4x Industry Avg</p>
                   </div>
-                </div>
-
-                {/* Raycast Knob Graphic */}
-                <div className="absolute -bottom-10 -right-10 w-64 h-64 opacity-50 group-hover:opacity-80 group-hover:scale-105 transition-all duration-700 pointer-events-none">
-                  <img 
-                    src="https://www.raycast.com/_next/image?url=%2F_next%2Fstatic%2Fimmutable%2Fmedia%2Fknob.3noqpufwegb8c.webp&w=1080&q=70" 
-                    alt="Rotary knob"
-                    className="w-full h-full object-contain"
-                  />
                 </div>
               </div>
 
-              {/* Card 2: Hot-Swap Switches / Modular Packages */}
+              {/* Card 2: Modular Deliverables */}
               <div className="rounded-3xl bg-[#0D0E14] border border-white/10 p-8 relative overflow-hidden flex flex-col justify-between group">
                 <div className="relative z-10">
                   <div className="w-10 h-10 rounded-xl bg-white/[0.05] border border-white/10 flex items-center justify-center text-[#FF6363] mb-6">
                     <Zap className="w-5 h-5" />
                   </div>
-                  <span className="text-xs font-mono text-[#8A8F98] uppercase">Hot-Swappable</span>
+                  <span className="text-xs font-mono text-[#8A8F98] uppercase">Flexible Formats</span>
                   <h3 className="text-xl font-bold text-white mt-1">
-                    Tailored Packages
+                    Multi-Format Synergy
                   </h3>
                   <p className="text-sm text-[#8A8F98] mt-2 leading-relaxed">
-                    Swap between YouTube pre-rolls, dedicated reviews, TikTok carousels, or multi-week brand takeovers.
+                    Combine 16:9 widescreen YouTube integrations with high-velocity 9:16 vertical reels and community posts.
                   </p>
                 </div>
 
-                {/* Hot-swap Visual */}
-                <div className="mt-6 h-36 relative rounded-2xl overflow-hidden bg-black/40 border border-white/5 flex items-center justify-center">
-                  <img 
-                    src="https://www.raycast.com/_next/image?url=%2F_next%2Fstatic%2Fimmutable%2Fmedia%2Fhotswap.20fcxf59o5tc6.webp&w=1080&q=70" 
-                    alt="Hot swap switch"
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                  />
+                {/* Visual Format Preview */}
+                <div className="mt-6 p-4 rounded-2xl bg-black/40 border border-white/5 space-y-2.5">
+                  <div className="flex items-center justify-between text-xs font-mono text-white">
+                    <span className="flex items-center gap-1.5">
+                      <Film className="w-3.5 h-3.5 text-[#FF6363]" />
+                      16:9 Landscape Video
+                    </span>
+                    <span className="text-[#8A8F98]">4K UHD</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs font-mono text-white">
+                    <span className="flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5 text-[#FF6363]" />
+                      9:16 Vertical Reels
+                    </span>
+                    <span className="text-[#8A8F98]">1080x1920</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs font-mono text-white">
+                    <span className="flex items-center gap-1.5">
+                      <Eye className="w-3.5 h-3.5 text-[#FF6363]" />
+                      Community & Link Pin
+                    </span>
+                    <span className="text-[#8A8F98]">Tracked</span>
+                  </div>
                 </div>
               </div>
 
-              {/* Card 3: Lightbar / Visual Quality */}
+              {/* Card 3: Studio Cinema Quality */}
               <div className="rounded-3xl bg-[#0D0E14] border border-white/10 p-8 relative overflow-hidden flex flex-col justify-between group">
                 <div className="relative z-10">
                   <div className="w-10 h-10 rounded-xl bg-white/[0.05] border border-white/10 flex items-center justify-center text-[#FF6363] mb-6">
                     <Sparkles className="w-5 h-5" />
                   </div>
-                  <span className="text-xs font-mono text-[#8A8F98] uppercase">Visual Accent</span>
+                  <span className="text-xs font-mono text-[#8A8F98] uppercase">Production Gear</span>
                   <h3 className="text-xl font-bold text-white mt-1">
                     Cinema Production
                   </h3>
                   <p className="text-sm text-[#8A8F98] mt-2 leading-relaxed">
-                    10-bit color grading, macro lens detail shots, and custom motion graphics in every integration.
+                    Broadcast lighting, calibrated color spaces, and dedicated macro lenses ensure your product looks stunning.
                   </p>
                 </div>
 
-                {/* Lightbar Image */}
-                <div className="mt-6 h-36 relative rounded-2xl overflow-hidden bg-black/40 border border-white/5 flex items-center justify-center">
-                  <img 
-                    src="https://www.raycast.com/_next/image?url=%2F_next%2Fstatic%2Fimmutable%2Fmedia%2Flightbar.3iufyg8ci49kk.webp&w=1080&q=70" 
-                    alt="RGB Lightbar"
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                  />
+                <div className="mt-6 p-4 rounded-2xl bg-black/40 border border-white/5 space-y-2 font-mono text-xs text-[#8A8F98]">
+                  <div className="flex items-center gap-2 text-white">
+                    <Camera className="w-3.5 h-3.5 text-[#FF6363]" />
+                    <span>Sony FX3 Full-Frame 4K</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-white">
+                    <Mic className="w-3.5 h-3.5 text-[#FF6363]" />
+                    <span>Shure SM7B Broadcast Vocal</span>
+                  </div>
                 </div>
               </div>
 
-              {/* Card 4: Multi-Channel Syndication (Tri-mode) */}
+              {/* Card 4: Multi-Channel Syndication */}
               <div className="md:col-span-2 rounded-3xl bg-[#0D0E14] border border-white/10 p-8 relative overflow-hidden flex flex-col justify-between group">
                 <div className="relative z-10">
                   <div className="w-10 h-10 rounded-xl bg-white/[0.05] border border-white/10 flex items-center justify-center text-[#FF6363] mb-6">
-                    <Share2 className="w-5 h-5" />
+                    <Globe className="w-5 h-5" />
                   </div>
-                  <span className="text-xs font-mono text-[#8A8F98] uppercase">Tri-Mode Connectivity</span>
+                  <span className="text-xs font-mono text-[#8A8F98] uppercase">Cross-Platform Distribution</span>
                   <h3 className="text-2xl sm:text-3xl font-bold text-white mt-1">
                     Multi-Platform Distribution Syndicate
                   </h3>
                   <p className="text-sm text-[#8A8F98] mt-3 max-w-xl leading-relaxed">
-                    One brief, seamless multi-channel broadcast across YouTube, X/Twitter, Instagram Reels, and LinkedIn creator feeds.
+                    One brief, seamless multi-channel broadcast across YouTube, X/Twitter, Instagram Reels, TikTok, and community newsletters.
                   </p>
 
                   {/* Connected channels pills */}
@@ -794,7 +825,7 @@ export default function RaycastTemplate({
                           onClick={() => triggerClick('click')}
                           className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-xs font-mono text-white transition-all hover:scale-105"
                         >
-                          <Globe className="w-3.5 h-3.5 text-[#FF6363]" />
+                          <Radio className="w-3.5 h-3.5 text-[#FF6363]" />
                           <span>{link.platform.toUpperCase()}</span>
                           {link.followers && (
                             <span className="text-[#8A8F98]">({link.followers})</span>
@@ -808,7 +839,7 @@ export default function RaycastTemplate({
                           key={idx}
                           className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-xs font-mono text-white"
                         >
-                          <Globe className="w-3.5 h-3.5 text-[#FF6363]" />
+                          <Radio className="w-3.5 h-3.5 text-[#FF6363]" />
                           <span>{plat}</span>
                         </div>
                       ))
@@ -820,7 +851,7 @@ export default function RaycastTemplate({
           </div>
         </section>
 
-        {/* SECTION 4: SHOWREEL & FEATURED MEDIA */}
+        {/* SECTION 4: SHOWREEL & RECENT BRAND INTEGRATIONS */}
         {featuredMedia && featuredMedia.length > 0 && (
           <section id="media" className="py-20 md:py-28 border-t border-white/[0.06] bg-[#07080A] relative">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -829,14 +860,14 @@ export default function RaycastTemplate({
                 <div>
                   <div className="inline-flex items-center gap-2 text-xs font-mono text-[#FF6363] uppercase tracking-wider mb-3">
                     <Play className="w-3.5 h-3.5" />
-                    <span>Selected Broadcasts</span>
+                    <span>Selected Works & Integrations</span>
                   </div>
                   <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight">
                     Showreel & Portfolio Clips
                   </h2>
                 </div>
                 <span className="text-xs font-mono text-[#8A8F98]">
-                  CLICK ANY BROADCAST TO PLAY [ SPACE ]
+                  CLICK ANY VIDEO TO PLAY [ SPACE ]
                 </span>
               </div>
 
@@ -884,7 +915,7 @@ export default function RaycastTemplate({
                           {mediaTitle}
                         </h3>
                         <p className="text-xs text-[#8A8F98] mt-1 line-clamp-2 leading-relaxed">
-                          {media.description || 'Verified production quality showcase with genuine brand integration.'}
+                          {media.description || 'Verified production quality showcase with authentic brand integration.'}
                         </p>
                       </div>
                     </div>
@@ -895,24 +926,24 @@ export default function RaycastTemplate({
           </section>
         )}
 
-        {/* SECTION 5: COMMAND PALETTE & DELIVERABLES */}
+        {/* SECTION 5: COMMAND PALETTE DELIVERABLES */}
         <section id="deliverables" className="py-20 md:py-28 border-t border-white/[0.06] bg-[#0A0B0E]/60 relative">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             
             <div className="max-w-2xl mb-14">
               <div className="inline-flex items-center gap-2 text-xs font-mono text-[#FF6363] uppercase tracking-wider mb-3">
                 <Terminal className="w-3.5 h-3.5" />
-                <span>Command Palette</span>
+                <span>Rate Card & Deliverables</span>
               </div>
               <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight">
-                Creator Deliverables & Rates
+                Sponsorship Packages & Rates
               </h2>
               <p className="mt-4 text-[#8A8F98] text-base leading-relaxed">
-                Clear deliverables, dedicated licensing rights, and guaranteed engagement timelines.
+                Clear deliverable milestones, dedicated licensing rights, and guaranteed publication dates.
               </p>
             </div>
 
-            {/* Raycast Style Command List Menu */}
+            {/* Command Palette List Menu */}
             <div className="max-w-4xl mx-auto rounded-3xl bg-[#0C0D12] border border-white/10 overflow-hidden shadow-2xl">
               
               {/* Fake Command Search Header */}
@@ -923,7 +954,7 @@ export default function RaycastTemplate({
                   </kbd>
                   <span className="text-white font-medium">Select a sponsorship package to initiate proposal...</span>
                 </div>
-                <span className="hidden sm:inline text-[#555A65]">NAVIGATE: [ ↑ ↓ ] ENTER: [ ↵ ]</span>
+                <span className="hidden sm:inline text-[#555A65]">ENTER: [ ↵ ]</span>
               </div>
 
               {/* Service Rows */}
@@ -980,7 +1011,7 @@ export default function RaycastTemplate({
           </div>
         </section>
 
-        {/* SECTION 6: DESK CALL TO ACTION FOOTER */}
+        {/* SECTION 6: CALL TO ACTION FOOTER */}
         <section className="py-24 md:py-32 border-t border-white/[0.08] bg-[#07080A] relative overflow-hidden text-center">
           
           {/* Subtle Ambient Glow */}
@@ -988,16 +1019,16 @@ export default function RaycastTemplate({
 
           <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <span className="px-3 py-1 rounded-full text-xs font-mono font-semibold bg-[#FF6363]/15 text-[#FF6363] border border-[#FF6363]/30 uppercase tracking-widest inline-block mb-6">
-              READY FOR DEPLOYMENT
+              PARTNERSHIP BRIEFING
             </span>
 
             <h2 className="text-4xl sm:text-6xl md:text-7xl font-black text-white tracking-tight leading-tight">
-              Everything that you love about {creatorName}, <br className="hidden sm:inline" />
-              now on your desk.
+              Ready to launch your next <br className="hidden sm:inline" />
+              campaign with {creatorName}?
             </h2>
 
             <p className="mt-6 text-[#8A8F98] text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
-              Available for brand sponsorships, commercial hardware shoots, keynote demos, and affiliate partnerships.
+              Now accepting commercial sponsorships, dedicated reviews, keynote appearances, and long-term brand ambassador partnerships.
             </p>
 
             <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
@@ -1028,11 +1059,11 @@ export default function RaycastTemplate({
           <div className="flex items-center gap-2 text-[#8A8F98]">
             <span>© {new Date().getFullYear()} {creatorName}</span>
             <span>•</span>
-            <span>Raycast Keyboard Portfolio Edition</span>
+            <span>Command Deck Creator Edition</span>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-[#8A8F98]">POWERED BY</span>
-            <span className="text-white font-semibold">FALCUS MEDIA</span>
+            <span className="text-[#8A8F98]">MANAGED BY</span>
+            <span className="text-white font-semibold">FALCUS MEDIA LTD</span>
           </div>
         </div>
       </footer>
